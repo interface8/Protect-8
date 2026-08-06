@@ -1,28 +1,39 @@
-// ─── User module types ──────────────────────────────────
-
 export interface UserDto {
   id: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
   name: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  roles: { id: string; name: string }[];
+  role: {
+    id: string;
+    name: string;
+  };
+  authProvider: string | null;
+  providerId: string | null;
 }
 
 export interface CreateUserInput {
-  email: string;
-  password: string;
   name: string;
-  roleIds?: string[];
+  email?: string;
+  phone?: string;
+  password: string;
+  roleId: string;
+  isActive?: boolean;
+  authProvider?: string | null;
+  providerId?: string | null;
 }
 
 export interface UpdateUserInput {
-  email?: string;
-  password?: string;
   name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  roleId?: string;
   isActive?: boolean;
-  roleIds?: string[];
+  authProvider?: string | null;
+  providerId?: string | null;
 }
 
 export interface UserFilters {

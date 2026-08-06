@@ -9,19 +9,15 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // ─── 1. Create Permissions ───────────────────────────
   const permissionDefs = [
-    // Users
     { resource: "users", action: "create", description: "Create users" },
     { resource: "users", action: "read", description: "View users" },
     { resource: "users", action: "update", description: "Update users" },
     { resource: "users", action: "delete", description: "Delete users" },
-    // Roles
     { resource: "roles", action: "create", description: "Create roles" },
     { resource: "roles", action: "read", description: "View roles" },
     { resource: "roles", action: "update", description: "Update roles" },
     { resource: "roles", action: "delete", description: "Delete roles" },
-    // Permissions
     { resource: "permissions", action: "create", description: "Create permissions" },
     { resource: "permissions", action: "read", description: "View permissions" },
     { resource: "permissions", action: "update", description: "Update permissions" },
@@ -40,17 +36,33 @@ async function main() {
 
   console.log(`  ✅ ${permissions.length} permissions created`);
 
-  // ─── 2. Create Admin Role with all permissions ───────
   const adminRole = await prisma.role.upsert({
     where: { name: "admin" },
-    update: {},
+    update: { description: "Full system administrator" },
     create: {
       name: "admin",
       description: "Full system administrator",
     },
   });
 
-  // Assign all permissions to admin role
+  const lawyerRole = await prisma.role.upsert({
+    where: { name: "lawyer" },
+    update: { description: "Licensed lawyer" },
+    create: {
+      name: "lawyer",
+      description: "Licensed lawyer",
+    },
+  });
+
+  const citizenRole = await prisma.role.upsert({
+    where: { name: "citizen" },
+    update: { description: "Platform citizen" },
+    create: {
+      name: "citizen",
+      description: "Platform citizen",
+    },
+  });
+
   for (const perm of permissions) {
     await prisma.rolePermission.upsert({
       where: {
@@ -67,95 +79,83 @@ async function main() {
     });
   }
 
-  console.log("  ✅ Admin role created with all permissions");
-
-  // ─── 3. Create Viewer Role (read-only) ───────────────
-  const viewerRole = await prisma.role.upsert({
-    where: { name: "viewer" },
-    update: {},
-    create: {
-      name: "viewer",
-      description: "Read-only access",
-    },
-  });
-
   const readPermissions = permissions.filter((p) => p.action === "read");
   for (const perm of readPermissions) {
     await prisma.rolePermission.upsert({
       where: {
         roleId_permissionId: {
-          roleId: viewerRole.id,
+          roleId: lawyerRole.id,
           permissionId: perm.id,
         },
       },
       update: {},
       create: {
-        roleId: viewerRole.id,
+        roleId: lawyerRole.id,
         permissionId: perm.id,
       },
     });
   }
 
-  console.log("  ✅ Viewer role created with read permissions");
-
-  // ─── 4. Create Admin User ───────────────────────────
-  const hashedPassword = await hash("admin123", 12);
+  console.log("  ✅ Roles seeded");
 
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@protect8.dev" },
-    update: {},
+    update: {
+      password: await hash("admin123", 12),
+      name: "System Admin",
+      role: { connect: { id: adminRole.id } },
+      phone: null,
+      isActive: true,
+    },
     create: {
       email: "admin@protect8.dev",
-      password: hashedPassword,
+      password: await hash("admin123", 12),
       name: "System Admin",
-      isActive: true,
-    },
-  });
-
-  // Assign admin role
-  await prisma.userRole.upsert({
-    where: {
-      userId_roleId: {
-        userId: adminUser.id,
-        roleId: adminRole.id,
-      },
-    },
-    update: {},
-    create: {
-      userId: adminUser.id,
       roleId: adminRole.id,
-    },
-  });
-
-  console.log("  ✅ Admin user created (admin@protect8.dev / admin123)");
-
-  // ─── 5. Create Demo Viewer User ─────────────────────
-  const viewerUser = await prisma.user.upsert({
-    where: { email: "viewer@protect8.dev" },
-    update: {},
-    create: {
-      email: "viewer@protect8.dev",
-      password: await hash("viewer123", 12),
-      name: "Demo Viewer",
       isActive: true,
     },
   });
 
-  await prisma.userRole.upsert({
-    where: {
-      userId_roleId: {
-        userId: viewerUser.id,
-        roleId: viewerRole.id,
-      },
+  const lawyerUser = await prisma.user.upsert({
+    where: { email: "lawyer@protect8.dev" },
+    update: {
+      password: await hash("lawyer123", 12),
+      name: "Demo Lawyer",
+      role: { connect: { id: lawyerRole.id } },
+      phone: null,
+      isActive: true,
     },
-    update: {},
     create: {
-      userId: viewerUser.id,
-      roleId: viewerRole.id,
+      email: "lawyer@protect8.dev",
+      password: await hash("lawyer123", 12),
+      name: "Demo Lawyer",
+      roleId: lawyerRole.id,
+      isActive: true,
     },
   });
 
-  console.log("  ✅ Viewer user created (viewer@protect8.dev / viewer123)");
+  const citizenUser = await prisma.user.upsert({
+    where: { email: "citizen@protect8.dev" },
+    update: {
+      password: await hash("citizen123", 12),
+      name: "Demo Citizen",
+      role: { connect: { id: citizenRole.id } },
+      phone: null,
+      isActive: true,
+    },
+    create: {
+      email: "citizen@protect8.dev",
+      password: await hash("citizen123", 12),
+      name: "Demo Citizen",
+      roleId: citizenRole.id,
+      isActive: true,
+    },
+  });
+
+  console.log("  ✅ Demo users seeded");
+  console.log("  - admin@protect8.dev / admin123");
+  console.log("  - lawyer@protect8.dev / lawyer123");
+  console.log("  - citizen@protect8.dev / citizen123");
 
   console.log("\n🎉 Seed completed successfully!");
 }

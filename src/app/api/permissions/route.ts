@@ -1,11 +1,10 @@
 import { NextRequest } from "next/server";
 import { permissionService, createPermissionSchema } from "@/modules/permissions";
-import { requireApiPermission, isErrorResponse } from "@/lib/auth";
+import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { jsonResponse, errorResponse } from "@/lib/http";
 
-// GET /api/permissions
 export async function GET() {
-  const guard = await requireApiPermission("permissions.read");
+  const guard = await requireApiRole("admin");
   if (isErrorResponse(guard)) return guard;
 
   try {
@@ -17,9 +16,8 @@ export async function GET() {
   }
 }
 
-// POST /api/permissions
 export async function POST(request: NextRequest) {
-  const guard = await requireApiPermission("permissions.create");
+  const guard = await requireApiRole("admin");
   if (isErrorResponse(guard)) return guard;
 
   try {
