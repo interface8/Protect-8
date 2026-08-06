@@ -1,92 +1,128 @@
+import { createHash, randomBytes, randomInt } from "crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { AUTH_COOKIE_NAME, AUTH_COOKIE_OPTIONS } from "./constants";
+import {
+  ACCESS_TOKEN_TTL,
+  AUTH_AUDIENCE,
+  AUTH_COOKIE_NAME,
+  AUTH_COOKIE_OPTIONS,
+  AUTH_ISSUER,
+  MFA_CODE_LENGTH,
+  REFRESH_COOKIE_NAME,
+  type SupportedRole,
+} from "./constants";
 
-// ─── Types ──────────────────────────────────────────────
-export interface JwtPayload {
-  sub: string; // userId
-  email: string;
+export interface AccessTokenPayload {
+  sub: string;
+  email?: string | null;
+  phone?: string | null;
+  role: SupportedRole;
   iat?: number;
   exp?: number;
 }
 
 export interface SessionUser {
   id: string;
-  email: string;
+  email?: string | null;
+  phone?: string | null;
   name: string;
+  role: SupportedRole;
+  roles: SupportedRole[];
+  permissions: string[];
   isActive: boolean;
-  permissions: string[]; // e.g. ["users.read", "users.create"]
-  roles: string[];       // role names
 }
 
-// ─── Helpers ────────────────────────────────────────────
 function getSecret() {
   const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET not set");
+  if (!secret) {
+    throw new Error("JWT_SECRET not set");
+  }
+
   return new TextEncoder().encode(secret);
 }
 
-// ─── Sign JWT ───────────────────────────────────────────
-export async function signJwt(payload: Omit<JwtPayload, "iat" | "exp">): Promise<string> {
-  const expiresIn = process.env.JWT_EXPIRES_IN ?? "7d";
-  const secret = getSecret();
-
+export async function signAccessToken(
+  payload: Omit<AccessTokenPayload, "iat" | "exp">,
+): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
+    .setIssuer(AUTH_ISSUER)
+    .setAudience(AUTH_AUDIENCE)
     .setIssuedAt()
-    .setExpirationTime(expiresIn)
-    .sign(secret);
+    .setExpirationTime(ACCESS_TOKEN_TTL)
+    .sign(getSecret());
 }
 
-// ─── Verify JWT ─────────────────────────────────────────
-export async function verifyJwt(token: string): Promise<JwtPayload | null> {
+export async function verifyAccessToken(
+  token: string,
+): Promise<AccessTokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecret());
-    return payload as unknown as JwtPayload;
+    const { payload } = await jwtVerify(token, getSecret(), {
+      issuer: AUTH_ISSUER,
+      audience: AUTH_AUDIENCE,
+    });
+
+    return payload as unknown as AccessTokenPayload;
   } catch {
     return null;
   }
 }
 
-// ─── Set auth cookie ────────────────────────────────────
-export async function setAuthCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set(AUTH_COOKIE_NAME, token, AUTH_COOKIE_OPTIONS);
+export const signJwt = signAccessToken;
+export const verifyJwt = verifyAccessToken;
+
+export function generateRefreshToken() {
+  const token = randomBytes(48).toString("base64url");
+  return {
+    token,
+    tokenHash: hashToken(token),
+  };
 }
 
-// ─── Remove auth cookie ────────────────────────────────
-export async function removeAuthCookie() {
-  const cookieStore = await cookies();
-  cookieStore.delete(AUTH_COOKIE_NAME);
+export function hashToken(value: string) {
+  return createHash("sha256").update(value).digest("hex");
 }
 
-// ─── Get token from cookies ────────────────────────────
+export function generateMfaCode() {
+  return String(randomInt(0, 10 ** MFA_CODE_LENGTH)).padStart(MFA_CODE_LENGTH, "0");
+}
+
+export function hashMfaCode(code: string) {
+  return hashToken(code);
+}
+
 export async function getToken(): Promise<string | undefined> {
   const cookieStore = await cookies();
   return cookieStore.get(AUTH_COOKIE_NAME)?.value;
 }
 
-// ─── Get current authenticated user ─────────────────────
+export async function setAuthCookie(token: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(AUTH_COOKIE_NAME, token, AUTH_COOKIE_OPTIONS);
+}
+
+export async function removeAuthCookie() {
+  const cookieStore = await cookies();
+  cookieStore.delete(AUTH_COOKIE_NAME);
+  cookieStore.delete(REFRESH_COOKIE_NAME);
+}
+
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const token = await getToken();
   if (!token) return null;
 
-  const payload = await verifyJwt(token);
+  const payload = await verifyAccessToken(token);
   if (!payload) return null;
 
   const user = await prisma.user.findUnique({
     where: { id: payload.sub },
     include: {
-      roles: {
+      role: {
         include: {
-          role: {
+          permissions: {
             include: {
-              permissions: {
-                include: {
-                  permission: true,
-                },
-              },
+              permission: true,
             },
           },
         },
@@ -96,29 +132,23 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
   if (!user || !user.isActive) return null;
 
-  interface UserRole {
-    role: {
-      name: string;
-      permissions: Array<{ permission: { resource: string; action: string } }>;
-    };
-  }
-  
-  const roles = user.roles.map((ur: UserRole) => ur.role.name);
-  const permissionsSet = new Set<string>(
-    user.roles.flatMap((ur: UserRole) =>
-      ur.role.permissions.map(
+  const role = user.role.name as SupportedRole;
+  const permissions = Array.from(
+    new Set(
+      user.role.permissions.map(
         (rp) => `${rp.permission.resource}.${rp.permission.action}`,
       ),
     ),
   );
-  const permissions = Array.from(permissionsSet);
 
   return {
     id: user.id,
     email: user.email,
+    phone: user.phone,
     name: user.name,
-    isActive: user.isActive,
+    role,
+    roles: [role],
     permissions,
-    roles,
+    isActive: user.isActive,
   };
 }

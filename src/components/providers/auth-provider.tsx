@@ -35,5 +35,5 @@ export function usePermission(permission: string): boolean {
 export function useRole(role: string): boolean {
   const user = useContext(AuthContext);
   if (!user) return false;
-  return user.roles.includes(role);
+  return user.role === role || user.roles.includes(role as typeof user.role);
 }
