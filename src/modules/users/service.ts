@@ -1,6 +1,13 @@
 import { compare, hash } from "bcryptjs";
 import * as userRepo from "./repository";
-import type { CreateUserInput, UpdateUserInput, UserFilters, UserDto } from "./types";
+import type {
+  CreateEmergencyContactInput,
+  CreateUserInput,
+  EmergencyContactDto,
+  UpdateUserInput,
+  UserDto,
+  UserFilters,
+} from "./types";
 
 export async function listUsers(filters: UserFilters) {
   return userRepo.findUsers(filters);
@@ -79,6 +86,7 @@ export async function verifyCredentials(
     email: user.email,
     phone: user.phone,
     name: user.name,
+    avatarUrl: user.avatarUrl,
     isActive: user.isActive,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -87,3 +95,59 @@ export async function verifyCredentials(
     providerId: user.providerId,
   };
 }
+
+export async function listEmergencyContacts(
+  userId: string,
+): Promise<EmergencyContactDto[]> {
+  return userRepo.listEmergencyContacts(userId);
+}
+
+export async function addEmergencyContact(
+  userId: string,
+  input: CreateEmergencyContactInput,
+): Promise<EmergencyContactDto> {
+  const user = await userRepo.findUserById(userId);
+  if (!user) throw new Error("User not found");
+
+  return userRepo.createEmergencyContact(userId, input);
+}
+
+export async function removeEmergencyContact(
+  userId: string,
+  contactId: string,
+): Promise<void> {
+  const contact = await userRepo.findEmergencyContactById(contactId, userId);
+  if (!contact) throw new Error("Emergency contact not found");
+
+  await userRepo.deleteEmergencyContact(contactId, userId);
+}
+
+export async function getEmergencyContactsForUser(
+  userId: string,
+): Promise<EmergencyContactDto[]> {
+  return userRepo.listEmergencyContacts(userId);
+}
+
+export async function setUserAvatar(
+  userId: string,
+  avatarUrl: string,
+): Promise<UserDto> {
+  const user = await userRepo.findUserById(userId);
+  if (!user) throw new Error("User not found");
+
+  return userRepo.updateUser(userId, { avatarUrl });
+}
+
+export const userService = {
+  listUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  verifyCredentials,
+  listEmergencyContacts,
+  addEmergencyContact,
+  removeEmergencyContact,
+  getEmergencyContactsForUser,
+  setUserAvatar,
+};

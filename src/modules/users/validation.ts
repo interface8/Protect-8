@@ -54,3 +54,26 @@ export const userFiltersSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
 });
+
+export const updateMeProfileSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters").optional(),
+    email: emailSchema.optional(),
+    phone: phoneSchema.optional(),
+  })
+  .refine(
+    (data) => data.name !== undefined || data.email !== undefined || data.phone !== undefined,
+    {
+      message: "Provide at least one field to update",
+    },
+  )
+  .refine((data) => !(data.email && data.phone), {
+    message: "Use either email or phone, not both",
+    path: ["phone"],
+  });
+
+export const createEmergencyContactSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: phoneSchema,
+  relationship: z.string().min(2, "Relationship must be at least 2 characters"),
+});

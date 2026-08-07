@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type {
+  CreateEmergencyContactInput,
   CreateUserInput,
+  EmergencyContactDto,
+  PaginatedResult,
   UpdateUserInput,
   UserDto,
   UserFilters,
-  PaginatedResult,
 } from "./types";
 
 const userWithRole = {
@@ -22,6 +24,7 @@ interface UserWithRole {
   phone: string | null;
   password?: string | null;
   name: string;
+  avatarUrl: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -33,18 +36,41 @@ interface UserWithRole {
   };
 }
 
+interface EmergencyContactRecord {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 function toUserDto(user: UserWithRole): UserDto {
   return {
     id: user.id,
     email: user.email,
     phone: user.phone,
     name: user.name,
+    avatarUrl: user.avatarUrl,
     isActive: user.isActive,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     role: user.role,
     authProvider: user.authProvider,
     providerId: user.providerId,
+  };
+}
+
+function toEmergencyContactDto(
+  contact: EmergencyContactRecord,
+): EmergencyContactDto {
+  return {
+    id: contact.id,
+    name: contact.name,
+    phone: contact.phone,
+    relationship: contact.relationship,
+    createdAt: contact.createdAt,
+    updatedAt: contact.updatedAt,
   };
 }
 
@@ -167,6 +193,7 @@ export async function createUser(input: CreateUserInput): Promise<UserDto> {
       phone: input.phone ?? null,
       password: input.password,
       roleId: input.roleId,
+      avatarUrl: input.avatarUrl ?? null,
       isActive: input.isActive ?? true,
       authProvider: input.authProvider ?? null,
       providerId: input.providerId ?? null,
@@ -187,6 +214,7 @@ export async function updateUser(
   if (input.email !== undefined) data.email = input.email;
   if (input.phone !== undefined) data.phone = input.phone;
   if (input.password !== undefined) data.password = input.password;
+  if (input.avatarUrl !== undefined) data.avatarUrl = input.avatarUrl;
   if (input.isActive !== undefined) data.isActive = input.isActive;
   if (input.authProvider !== undefined) data.authProvider = input.authProvider;
   if (input.providerId !== undefined) data.providerId = input.providerId;
@@ -208,4 +236,57 @@ export async function updateUser(
 
 export async function deleteUser(id: string): Promise<void> {
   await prisma.user.delete({ where: { id } });
+}
+
+export async function listEmergencyContacts(
+  userId: string,
+): Promise<EmergencyContactDto[]> {
+  const contacts = await prisma.emergencyContact.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return contacts.map(toEmergencyContactDto);
+}
+
+export async function findEmergencyContactById(
+  contactId: string,
+  userId: string,
+): Promise<EmergencyContactDto | null> {
+  const contact = await prisma.emergencyContact.findFirst({
+    where: {
+      id: contactId,
+      userId,
+    },
+  });
+
+  return contact ? toEmergencyContactDto(contact) : null;
+}
+
+export async function createEmergencyContact(
+  userId: string,
+  input: CreateEmergencyContactInput,
+): Promise<EmergencyContactDto> {
+  const contact = await prisma.emergencyContact.create({
+    data: {
+      userId,
+      name: input.name,
+      phone: input.phone,
+      relationship: input.relationship,
+    },
+  });
+
+  return toEmergencyContactDto(contact);
+}
+
+export async function deleteEmergencyContact(
+  contactId: string,
+  userId: string,
+): Promise<void> {
+  await prisma.emergencyContact.deleteMany({
+    where: {
+      id: contactId,
+      userId,
+    },
+  });
 }

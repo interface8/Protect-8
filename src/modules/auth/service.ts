@@ -24,6 +24,7 @@ import {
   type SupportedRole,
 } from "@/lib/auth/constants";
 import { verifyGoogleIdToken } from "./providers/google";
+import { verifyAppleIdentityToken } from "./providers/apple";
 
 function assertSupportedRole(role: string): SupportedRole {
   if (!SUPPORTED_ROLES.includes(role as SupportedRole)) {
@@ -102,7 +103,15 @@ async function verifyProviderToken(
   }
 
   if (provider === "apple") {
-    throw new Error("Apple sign-in is not yet available");
+    const profile = await verifyAppleIdentityToken(oauthToken);
+
+    return {
+      provider: "apple",
+      providerId: profile.providerId,
+      name: profile.name || "Apple User",
+      email: profile.emailVerified ? profile.email : null,
+      phone: null,
+    };
   }
 
   throw new Error("Unsupported provider");

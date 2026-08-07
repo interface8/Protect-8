@@ -27,6 +27,7 @@ model User {
   phone         String?  @unique
   password      String?
   name          String
+  avatarUrl     String?
   roleId        String
   authProvider  String?
   providerId    String?
@@ -34,9 +35,10 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  role          Role            @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  refreshTokens RefreshToken[]
-  mfaCodes      MfaCode[]
+  role              Role                @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  refreshTokens     RefreshToken[]
+  mfaCodes          MfaCode[]
+  emergencyContacts EmergencyContact[]
 
   @@map("users")
 }
@@ -111,4 +113,19 @@ model MfaCode {
 
   @@index([userId, purpose])
   @@map("mfa_codes")
+}
+
+model EmergencyContact {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  phone        String
+  relationship String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("emergency_contacts")
 }
