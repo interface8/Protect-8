@@ -30,16 +30,18 @@ export async function POST(request: NextRequest) {
     );
 
     return setAuthCookies(response, session.accessToken, session.refreshToken);
-  }catch (error) {
+  } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";
 
     const status =
       message === "Invalid credentials"
         ? 401
-        : message === "Apple sign-in is not yet available"
-          ? 400
-          : 500;
+        : message === "Google sign-in is not configured"
+          ? 503
+          : message === "Apple sign-in is not yet available"
+            ? 503
+            : 500;
 
     return NextResponse.json({ message }, { status });
   }

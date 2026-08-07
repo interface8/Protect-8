@@ -41,9 +41,11 @@ export async function POST(request: NextRequest) {
           ? 400
           : message === "Provide password or OAuth token"
             ? 400
-            : message === "Apple sign-in is not yet available"
-              ? 400
-              : 500;
+            : message === "Google sign-in is not configured"
+              ? 503
+              : message === "Apple sign-in is not yet available"
+                ? 503
+                : 500;
 
     return NextResponse.json({ message }, { status });
   }

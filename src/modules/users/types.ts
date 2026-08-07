@@ -3,6 +3,7 @@ export interface UserDto {
   email: string | null;
   phone: string | null;
   name: string;
+  avatarUrl: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -14,6 +15,21 @@ export interface UserDto {
   providerId: string | null;
 }
 
+export interface EmergencyContactDto {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateEmergencyContactInput {
+  name: string;
+  phone: string;
+  relationship: string;
+}
+
 export interface CreateUserInput {
   name: string;
   email?: string;
@@ -21,6 +37,7 @@ export interface CreateUserInput {
   password: string;
   roleId: string;
   isActive?: boolean;
+  avatarUrl?: string | null;
   authProvider?: string | null;
   providerId?: string | null;
 }
@@ -32,6 +49,7 @@ export interface UpdateUserInput {
   password?: string;
   roleId?: string;
   isActive?: boolean;
+  avatarUrl?: string | null;
   authProvider?: string | null;
   providerId?: string | null;
 }

@@ -1,12 +1,22 @@
 import { OAuth2Client } from "google-auth-library";
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+let googleClient: OAuth2Client | null = null;
+let googleClientId: string | null = null;
 
-if (!GOOGLE_CLIENT_ID) {
-  throw new Error("GOOGLE_CLIENT_ID is not configured");
+function getGoogleClient() {
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+
+  if (!clientId) {
+    throw new Error("Google sign-in is not configured");
+  }
+
+  if (!googleClient || googleClientId !== clientId) {
+    googleClient = new OAuth2Client(clientId);
+    googleClientId = clientId;
+  }
+
+  return { client: googleClient, clientId };
 }
-
-const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 export interface VerifiedGoogleUser {
   providerId: string;
@@ -22,11 +32,13 @@ export async function verifyGoogleIdToken(
     throw new Error("Invalid Google token");
   }
 
+  const { client, clientId } = getGoogleClient();
+
   let ticket;
   try {
     ticket = await client.verifyIdToken({
       idToken,
-      audience: GOOGLE_CLIENT_ID,
+      audience: clientId,
     });
   } catch {
     throw new Error("Invalid Google token");
