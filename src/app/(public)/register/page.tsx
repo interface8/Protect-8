@@ -20,6 +20,7 @@ import { Shield, Mail, Lock, User, ArrowRight, Check, X, Eye, EyeOff } from "luc
 export default function RegisterPage() {
   const router = useRouter();
 
+  // Form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +28,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Prevent XSS attacks
   function sanitizeInput(value: string): string {
     return value
       .trim()
@@ -37,21 +39,25 @@ export default function RegisterPage() {
       .replace(/&/g, "&amp;");
   }
 
+  // Validate email format
   function isValidEmail(value: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(value);
   }
 
+  // Only allow letters, spaces, hyphens, and apostrophes
   function sanitizeName(value: string): string {
     return value.trim().replace(/[^a-zA-Z\s\-']/g, "");
   }
 
+  // Password validation rules
   const hasMinLength = password.length >= 8;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const isPasswordValid = hasMinLength && hasUpperCase && hasNumber && hasSpecialChar;
 
+  // Handle form submission
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -85,6 +91,7 @@ export default function RegisterPage() {
           name: sanitizedName,
           email: sanitizedEmail,
           password: sanitizedPassword,
+          role: "citizen",
         }),
       });
 
@@ -104,6 +111,7 @@ export default function RegisterPage() {
     }
   }
 
+  // Password requirement checklist item
   function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
     return (
       <div className="flex items-center gap-1.5 text-xs">
@@ -124,11 +132,14 @@ export default function RegisterPage() {
       className="h-screen w-screen flex items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/home.jpg')" }}
     >
+      {/* Background overlay */}
       <div className="absolute inset-0 bg-black/90"></div>
 
+      {/* Decorative blur effects */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-[#c4922a]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#554116]/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
+      {/* Register card */}
       <Card className="w-full max-w-md bg-white shadow-2xl rounded-2xl mx-4 relative z-10 max-h-[90vh] overflow-y-auto p-4 sm:p-5">
         <CardHeader className="space-y-2 text-center p-0 pb-3">
           <div className="flex justify-center">
@@ -145,6 +156,7 @@ export default function RegisterPage() {
         </CardHeader>
 
         <CardContent className="p-0">
+          {/* Error message */}
           {error && (
             <Alert className="mb-3 border-[#c4922a] bg-[#c4922a]/10 rounded-lg py-2">
               <AlertDescription className="text-[#c4922a] text-xs">
@@ -154,6 +166,7 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Full Name field */}
             <div className="space-y-1">
               <Label htmlFor="name" className="text-[#554116] font-medium text-xs">
                 Full Name
@@ -173,6 +186,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Email field */}
             <div className="space-y-1">
               <Label htmlFor="email" className="text-[#554116] font-medium text-xs">
                 Email Address
@@ -192,6 +206,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Password field with toggle */}
             <div className="space-y-1">
               <Label htmlFor="password" className="text-[#554116] font-medium text-xs">
                 Password
@@ -223,6 +238,7 @@ export default function RegisterPage() {
                 </button>
               </div>
 
+              {/* Password requirements */}
               {password && (
                 <div className="mt-1.5 space-y-0.5 p-2 bg-[#efe2c7]/30 rounded-lg border border-[#554116]/10">
                   <p className="text-[10px] font-medium text-[#554116] mb-1">Password must have:</p>
@@ -234,6 +250,7 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Submit button */}
             <Button
               type="submit"
               className="w-full bg-[#c4922a] hover:bg-[#c4922a]/80 text-white h-9 rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#c4922a]/25 disabled:opacity-50 disabled:hover:scale-100"
@@ -249,6 +266,7 @@ export default function RegisterPage() {
             </Button>
           </form>
 
+          {/* Divider */}
           <div className="relative my-3">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-[#554116]/10"></div>
@@ -260,6 +278,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          {/* Google sign-up button */}
           <Button
             type="button"
             variant="outline"
