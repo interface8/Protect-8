@@ -12,6 +12,16 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum RatingRaterType {
+  CITIZEN
+  LAWYER
+}
+
+enum AssistantConversationStatus {
+  ACTIVE
+  ESCALATED
+  CLOSED
+}
 model MfaRateLimit {
   id          String   @id @default(cuid())
   key         String   @unique
@@ -48,6 +58,7 @@ model User {
   reviewedLawyerProfiles LawyerProfile[] @relation("LawyerProfileReviewedBy")
   mfaCodes          MfaCode[]
   emergencyContacts EmergencyContact[]
+  assistantConversations  AssistantConversation[]
 
   @@map("users")
 }
@@ -153,6 +164,8 @@ model LawyerProfile {
   rejectionReason     String?
   reviewedById        String?
   reviewedAt          DateTime?
+  rating              Float              @default(0)
+  ratingCount         Int                @default(0)
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -162,4 +175,76 @@ model LawyerProfile {
   @@index([verificationStatus])
   @@index([isMatchable])
   @@map("lawyer_profiles")
+}
+
+model RightsGuide {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  title            String
+  iconKey          String
+  shortDescription String
+  body             String
+  order            Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+  @@map("rights_guides")
+}
+
+model RequestRating {
+  id           String           @id @default(cuid())
+  requestId    String
+  raterUserId  String
+  raterType    RatingRaterType
+  targetUserId String
+  rating       Int
+  comment      String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([requestId, raterUserId, raterType])
+  @@index([requestId])
+  @@index([targetUserId])
+  @@index([raterUserId])
+  @@map("request_ratings")
+}
+
+model AssistantConversation {
+  id             String                    @id @default(cuid())
+  userId         String
+  category       String?
+  status         AssistantConversationStatus @default(ACTIVE)
+  lastMessageAt  DateTime?
+  escalatedAt    DateTime?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  AssistantMessage[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("assistant_conversations")
+}
+
+model AssistantMessage {
+  id            String   @id @default(cuid())
+  conversationId String
+  role          String
+  content       String
+  category      String?
+  disclosure    String?
+  isEscalation  Boolean  @default(false)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([role])
+  @@map("assistant_messages")
 }
