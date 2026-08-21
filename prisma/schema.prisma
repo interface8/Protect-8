@@ -22,6 +22,15 @@ enum AssistantConversationStatus {
   ESCALATED
   CLOSED
 }
+
+enum RequestStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 model MfaRateLimit {
   id          String   @id @default(cuid())
   key         String   @unique
@@ -59,6 +68,8 @@ model User {
   mfaCodes          MfaCode[]
   emergencyContacts EmergencyContact[]
   assistantConversations  AssistantConversation[]
+  citizenRequests       Request[] @relation("CitizenRequests")
+  lawyerRequests         Request[] @relation("LawyerRequests")
 
   @@map("users")
 }
@@ -205,6 +216,8 @@ model RequestRating {
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
+  request      Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
   @@unique([requestId, raterUserId, raterType])
   @@index([requestId])
   @@index([targetUserId])
@@ -247,4 +260,29 @@ model AssistantMessage {
   @@index([conversationId])
   @@index([role])
   @@map("assistant_messages")
+}
+
+model Request {
+  id            String        @id @default(cuid())
+  citizenId     String
+  lawyerId      String?
+  category      String
+  title         String
+  description   String?
+  status        RequestStatus @default(OPEN)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  completedAt   DateTime?
+  assignedAt    DateTime?
+  cancelledAt   DateTime?
+
+  citizen User  @relation("CitizenRequests", fields: [citizenId], references: [id], onDelete: Cascade)
+  lawyer  User? @relation("LawyerRequests", fields: [lawyerId], references: [id], onDelete: SetNull)
+
+  ratings RequestRating[]
+
+  @@index([citizenId])
+  @@index([lawyerId])
+  @@index([status])
+  @@map("requests")
 }
