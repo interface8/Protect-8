@@ -11,6 +11,7 @@ import {
   Scale,
   Bot,
   Library,
+  X,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -45,7 +46,7 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
 
   return (
     <>
-      {/* Overlay - mobile only */}
+     
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -53,7 +54,7 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
         />
       )}
 
-      {/* Sidebar - fixed on all screen sizes */}
+     
       <aside
         className={`
           fixed top-0 left-0 w-[240px] bg-[#0a0a0a] h-screen flex flex-col z-50
@@ -62,20 +63,29 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/10 flex-shrink-0">
-          <div className="flex items-center gap-3 mb-2">
+      
+        <div className="px-4 py-4 border-b border-white/10 flex-shrink-0 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div className="w-11 h-11 bg-[#c4922a] rounded-xl flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="text-2xl font-normal text-white">Protect8</span>
           </div>
-          <p className="text-base text-white/40 tracking-wider pl-1">
-            Emergency Legal Platform
-          </p>
+         
+          <button
+            onClick={closeSidebar}
+            className="md:hidden text-white/60 hover:text-white transition-colors p-1"
+            aria-label="Close sidebar"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        {/* Navigation */}
+        <p className="text-base text-white/40 tracking-wider px-6 pb-4 border-b border-white/10">
+          Emergency Legal Platform
+        </p>
+
+        
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -106,7 +116,7 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
           })}
         </nav>
 
-        {/* SOS Emergency */}
+
         <div className="px-4 py-4 border-t border-white/10 flex-shrink-0">
           <div className="bg-red-500/10 rounded-lg p-3 border-2 border-dashed border-red-500/40">
             <div className="flex items-center gap-2 text-red-400 font-semibold text-lg">
@@ -116,7 +126,7 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
           </div>
         </div>
 
-        {/* Need help? Call */}
+        
         <div className="px-4 pb-4 flex-shrink-0">
           <div className="bg-white/5 rounded-lg p-3 text-center">
             <p className="text-sm text-white/40">Need help? Call</p>

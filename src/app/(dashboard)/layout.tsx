@@ -1,3 +1,6 @@
+
+
+
 "use client";
 
 import { ReactNode, useState } from "react";
@@ -15,7 +18,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
-    <div className="min-h-screen bg-[#efe2c7] flex">
+    <div className="min-h-screen bg-[#f3f4f6] flex">
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
 

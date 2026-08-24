@@ -7,7 +7,7 @@ import HomePlatformStats from "@/components/dashboard/HomePlatformStats";
 
 export default function DashboardPage() {
   return (
-    <div className="bg-[#f3f4f6]">
+    <div className="flex flex-col min-h-screen">
       <HomeHeadSection />
       <HomeQuickAccess />
       <HomeAvailableNow />
