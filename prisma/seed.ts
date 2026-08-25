@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 import "dotenv/config";
@@ -152,6 +152,100 @@ async function main() {
     },
   });
 
+    const now = new Date();
+
+  await prisma.emergencyRequest.deleteMany({
+    where: {
+      userId: {
+        in: [citizenUser.id, lawyerUser.id],
+      },
+    },
+  });
+
+  await prisma.subscription.deleteMany({
+    where: {
+      userId: {
+        in: [citizenUser.id, lawyerUser.id],
+      },
+    },
+  });
+
+  await prisma.reportSummary.deleteMany({
+    where: {
+      summaryKey: "platform_summary",
+    },
+  });
+
+  await prisma.emergencyRequest.createMany({
+    data: [
+      {
+        userId: citizenUser.id,
+        category: "Police harassment",
+        message: "Need urgent help after police stop.",
+        status: "OPEN",
+      },
+      {
+        userId: citizenUser.id,
+        category: "Domestic violence",
+        message: "Need immediate support and legal guidance.",
+        assignedToId: lawyerUser.id,
+        status: "RESPONDED",
+        respondedAt: new Date(now.getTime() - 30 * 60 * 1000),
+      },
+      {
+        userId: citizenUser.id,
+        category: "Land dispute",
+        message: "Boundary issue with a neighbor.",
+        assignedToId: lawyerUser.id,
+        status: "RESOLVED",
+        respondedAt: new Date(now.getTime() - 90 * 60 * 1000),
+        resolvedAt: new Date(now.getTime() - 15 * 60 * 1000),
+      },
+    ],
+  });
+
+  await prisma.subscription.createMany({
+    data: [
+      {
+        userId: citizenUser.id,
+        planName: "Citizen Pro",
+        amount: new Prisma.Decimal("25000"),
+        currency: "NGN",
+        status: "ACTIVE",
+        startsAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: lawyerUser.id,
+        planName: "Lawyer Pro",
+        amount: new Prisma.Decimal("50000"),
+        currency: "NGN",
+        status: "ACTIVE",
+        startsAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: adminUser.id,
+        planName: "Admin Internal",
+        amount: new Prisma.Decimal("0"),
+        currency: "NGN",
+        status: "PAUSED",
+        startsAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  await prisma.reportSummary.create({
+    data: {
+      summaryKey: "platform_summary",
+      registeredLawyers: 1,
+      activeUsers: 3,
+      averageLawyerResponseTime: 45,
+      emergencyResponseRate: 66.67,
+      monthlyRecurringRevenue: new Prisma.Decimal("75000"),
+      caseCompletionRate: 0,
+      computedAt: new Date(),
+    },
+  });
+
      const rightsGuideDefs = [
     {
       slug: "traffic-stop",
@@ -238,6 +332,7 @@ async function main() {
     });
   }
 
+  console.log("  ✅ Reporting seed data created");
   console.log("  ✅ Rights guides seeded");
 
   console.log("  ✅ Demo users seeded");
