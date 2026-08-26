@@ -11,8 +11,8 @@ const platformStats = [
 
 export default function HomePlatformStats() {
   return (
-    <div className="w-full bg-[#f3f4f6] pb-14">
-      <div className="w-[90%] md:w-[75%] mx-auto bg-[#0a0a0a] rounded-2xl py-6 md:py-8 px-8 md:px-10">
+    <div className="w-full bg-[#f3f4f6] pb-20">
+      <div className="w-[90%] md:w-[75%] mx-auto bg-[#0a0a0a] rounded-2xl py-4 md:py-6 px-4 md:px-6">
         <p className="text-xs md:text-sm font-semibold text-white/40 uppercase tracking-wider mb-4 md:mb-6">
           Platform
         </p>
