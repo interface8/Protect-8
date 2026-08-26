@@ -31,6 +31,29 @@ enum RequestStatus {
   CANCELLED
 }
 
+enum KnowledgeCenterCategory {
+  CRIMINAL_RIGHTS
+  PRIVACY_RIGHTS
+  PROPERTY_LAW
+  FINANCIAL_CRIME
+  TRAFFIC_LAW
+}
+
+enum EmergencyRequestStatus {
+  OPEN
+  RESPONDED
+  RESOLVED
+  CLOSED
+}
+
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELED
+  EXPIRED
+}
+
 model MfaRateLimit {
   id          String   @id @default(cuid())
   key         String   @unique
@@ -70,6 +93,13 @@ model User {
   assistantConversations  AssistantConversation[]
   citizenRequests       Request[] @relation("CitizenRequests")
   lawyerRequests         Request[] @relation("LawyerRequests")
+  createdArticles Article[] @relation("ArticleCreatedBy")
+  updatedArticles Article[] @relation("ArticleUpdatedBy")
+  flaggedArticles Article[] @relation("ArticleFlaggedBy")
+  auditLogs       AuditLog[] @relation("AuditLogActor")
+  emergencyRequests        EmergencyRequest[] @relation("EmergencyRequests")
+  assignedEmergencyRequests EmergencyRequest[] @relation("EmergencyAssignedTo")
+  subscriptions            Subscription[]
 
   @@map("users")
 }
@@ -285,4 +315,108 @@ model Request {
   @@index([lawyerId])
   @@index([status])
   @@map("requests")
+}
+
+model Article {
+  id            String                   @id @default(cuid())
+  slug          String                   @unique
+  title         String
+  excerpt       String
+  body          String
+  category      KnowledgeCenterCategory
+  readTimeMinutes Int
+  isPublished   Boolean                  @default(true)
+  isFlagged     Boolean                  @default(false)
+  flagReason    String?
+  flaggedAt     DateTime?
+  createdById   String
+  updatedById   String?
+  flaggedById   String?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  createdBy     User                     @relation("ArticleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy     User?                    @relation("ArticleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  flaggedBy     User?                    @relation("ArticleFlaggedBy", fields: [flaggedById], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([isPublished])
+  @@index([isFlagged])
+  @@map("articles")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorId     String
+  action      String
+  target      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  actor       User     @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([target])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model ReportSummary {
+  id                         String   @id @default(cuid())
+  summaryKey                 String   @unique
+  registeredLawyers          Int      @default(0)
+  activeUsers                Int      @default(0)
+  averageLawyerResponseTime   Float    @default(0)
+  emergencyResponseRate       Float    @default(0)
+  monthlyRecurringRevenue     Decimal  @default(0)
+  caseCompletionRate          Float    @default(0)
+  computedAt                  DateTime @default(now())
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  @@index([summaryKey])
+  @@map("report_summaries")
+}
+
+model EmergencyRequest {
+  id           String                 @id @default(cuid())
+  userId       String
+  status       EmergencyRequestStatus @default(OPEN)
+  category     String
+  message      String?
+  assignedToId String?
+  respondedAt  DateTime?
+  resolvedAt   DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  user       User  @relation("EmergencyRequests", fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo User? @relation("EmergencyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("emergency_requests")
+}
+
+model Subscription {
+  id         String             @id @default(cuid())
+  userId     String
+  planName   String
+  amount     Decimal
+  currency   String             @default("USD")
+  status     SubscriptionStatus  @default(ACTIVE)
+  startsAt   DateTime
+  endsAt     DateTime?
+  canceledAt DateTime?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("subscriptions")
 }

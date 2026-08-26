@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { lawyerService, rejectLawyerSchema } from "@/modules/lawyers";
 import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { jsonResponse, errorResponse } from "@/lib/http";
+import { auditService } from "@/modules/audit";
 
 interface RouteParams {
   params: { id: string };
@@ -25,11 +26,24 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const reason = parsed.data.reason;
+
     const profile = await lawyerService.rejectLawyer(
       params.id,
       guard.id,
-      parsed.data.reason,
+      reason,
     );
+
+    await auditService.logAuditEvent({
+      actorId: guard.id,
+      action: "lawyer.rejected",
+      target: `lawyer_profile:${params.id}`,
+      metadata: {
+        lawyerProfileId: params.id,
+        verificationStatus: "REJECTED",
+        reason,
+      },
+    });
 
     return jsonResponse({
       message: "Lawyer rejected successfully",
