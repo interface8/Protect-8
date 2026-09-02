@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient, Prisma, KnowledgeCenterCategory } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 import "dotenv/config";
@@ -331,6 +331,108 @@ async function main() {
       },
     });
   }
+
+   const articleDefs: Array<{
+    slug: string;
+    title: string;
+    excerpt: string;
+    body: string;
+    category: KnowledgeCenterCategory;
+    readTimeMinutes: number;
+  }> = [
+    {
+      slug: "know-your-rights-when-stopped-by-police",
+      title: "Know Your Rights When Stopped by Police",
+      excerpt:
+        "A practical guide to staying calm, protecting yourself, and handling a police stop safely.",
+      body:
+        "If police stop you, stay calm and keep your hands visible. Ask for the reason for the stop. Provide your license and other required documents when lawfully requested, but do not volunteer extra information. You do not have to consent to a search without a lawful basis. If the stop becomes aggressive or confusing, record details as soon as it is safe, including the officer's name, badge number, time, and location. Seek legal help quickly if your rights may have been violated.",
+      category: "TRAFFIC_LAW",
+      readTimeMinutes: 4,
+    },
+    {
+      slug: "what-to-do-after-an-efcc-invitation",
+      title: "What to Do After an EFCC Invitation",
+      excerpt:
+        "Steps to take before attending, responding, or submitting documents to an agency.",
+      body:
+        "If you receive an EFCC or agency invitation, read it carefully and confirm the issuing office, date, and reason. Do not ignore it, but also do not attend blindly. Speak to a lawyer before making statements or submitting documents. Keep copies of all letters, emails, and messages. If the invitation is vague, threatening, or unusual, verify it before responding and get legal support as early as possible.",
+      category: "FINANCIAL_CRIME",
+      readTimeMinutes: 5,
+    },
+    {
+      slug: "your-privacy-rights-online-and-on-your-phone",
+      title: "Your Privacy Rights Online and on Your Phone",
+      excerpt:
+        "Understand what private data is protected and how to respond to requests for access.",
+      body:
+        "Your personal messages, account data, and private records should not be shared casually. Before giving out sensitive information, confirm who is asking, why they need it, and whether they have lawful authority. Avoid posting personal documents publicly. If your phone, accounts, or private data are being accessed without permission, preserve evidence and seek legal advice. Privacy issues often become more serious when records are deleted or altered, so act early.",
+      category: "PRIVACY_RIGHTS",
+      readTimeMinutes: 4,
+    },
+    {
+      slug: "how-to-handle-a-land-dispute",
+      title: "How to Handle a Land Dispute",
+      excerpt:
+        "Protect your documents, evidence, and possession history when land ownership is challenged.",
+      body:
+        "Land disputes often depend on documents, witnesses, and possession history. Gather your title documents, survey plans, receipts, agreements, photographs, and correspondence related to the property. Do not destroy structures or use force to settle the matter. Avoid verbal arrangements without written proof. If there is a boundary or ownership disagreement, consult a lawyer early so your evidence can be organized and preserved properly.",
+      category: "PROPERTY_LAW",
+      readTimeMinutes: 5,
+    },
+    {
+      slug: "understanding-your-rights-during-a-police-arrest",
+      title: "Understanding Your Rights During a Police Arrest",
+      excerpt:
+        "What to say, what not to sign, and how to protect yourself during detention.",
+      body:
+        "If police tell you that you are under arrest, remain calm and do not resist physically. You have the right to remain silent and the right to request a lawyer. Ask for the reason for the arrest, but avoid detailed statements without legal advice. Do not sign documents you do not understand. If possible, note the officers involved, the time, location, and any charges mentioned. A lawyer can help you challenge an unlawful arrest or protect your rights during questioning and detention.",
+      category: "CRIMINAL_RIGHTS",
+      readTimeMinutes: 4,
+    },
+    {
+      slug: "what-to-do-about-unpaid-salary-or-dismissal",
+      title: "What to Do About Unpaid Salary or Dismissal",
+      excerpt:
+        "Practical steps if you are dealing with workplace disputes, suspension, or termination.",
+      body:
+        "If you have a workplace problem, keep your employment letter, payslips, emails, chat messages, and any disciplinary notices. Do not resign in anger without understanding the consequences. If you were dismissed, suspended, or not paid as expected, record the dates and the exact messages exchanged. Review your contract and speak with a lawyer before accepting any settlement or signing a release you do not understand.",
+      category: "PROPERTY_LAW",
+      readTimeMinutes: 5,
+    },
+  ];
+
+  for (const article of articleDefs) {
+    await prisma.article.upsert({
+      where: { slug: article.slug },
+      update: {
+        title: article.title,
+        excerpt: article.excerpt,
+        body: article.body,
+        category: article.category,
+        readTimeMinutes: article.readTimeMinutes,
+        isPublished: true,
+        isFlagged: false,
+        flagReason: null,
+        flaggedAt: null,
+        updatedById: adminUser.id,
+      },
+      create: {
+        slug: article.slug,
+        title: article.title,
+        excerpt: article.excerpt,
+        body: article.body,
+        category: article.category,
+        readTimeMinutes: article.readTimeMinutes,
+        isPublished: true,
+        isFlagged: false,
+        createdById: adminUser.id,
+        updatedById: adminUser.id,
+      },
+    });
+  }
+
+  console.log("  ✅ Knowledge Center articles seeded");
 
   console.log("  ✅ Reporting seed data created");
   console.log("  ✅ Rights guides seeded");
