@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import RightsHeader from "@/components/dashboard/rights/RightsHeader";
 import RightsCardGrid from "@/components/dashboard/rights/RightsCardGrid";
 import { Guide } from "@/types/rights";
+import { Loader2 } from "lucide-react";
 
 export default function KnowYourRightsPage() {
   const router = useRouter();
@@ -53,7 +54,10 @@ export default function KnowYourRightsPage() {
   if (loading) {
     return (
       <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
-        <p className="text-[#554116]">Loading rights guides...</p>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-16 h-16 text-[#c4922a] animate-spin" />
+          <p className="text-sm text-[#554116]/60 animate-pulse">Loading rights guides...</p>
+        </div>
       </div>
     );
   }
