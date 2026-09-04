@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Guide } from "@/types/rights";
@@ -43,7 +43,10 @@ export default function GuideDetailPage() {
   if (loading) {
     return (
       <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
-        <p className="text-[#554116]">Loading guide...</p>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-16 h-16 text-[#c4922a] animate-spin animate-spin-slow" />
+          <p className="text-sm text-[#554116]/60 animate-pulse">Loading guide...</p>
+        </div>
       </div>
     );
   }
@@ -61,7 +64,6 @@ export default function GuideDetailPage() {
   return (
     <div className="w-full bg-[#f3f4f6] min-h-screen">
       <div className="w-full px-4 md:w-[55%] md:mx-auto py-8">
-        {/* Back link */}
         <Link
           href="/know-your-rights"
           className="inline-flex items-center gap-1 text-sm text-[#554116]/60 hover:text-[#554116] transition-colors mb-4"
@@ -70,14 +72,12 @@ export default function GuideDetailPage() {
           <span>Know Your Rights</span>
         </Link>
 
-        {/* Disclosure Block */}
         <div className="bg-[#c4922a]/10 border border-[#c4922a]/30 rounded-lg p-4 mb-6">
           <p className="text-xs text-[#554116]/80 text-center">
             ⚠️ {DISCLOSURE}
           </p>
         </div>
 
-        {/* Main Content */}
         <Card className="p-6 md:p-8 bg-white shadow-lg rounded-2xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-[#efe2c7] rounded-xl flex items-center justify-center">

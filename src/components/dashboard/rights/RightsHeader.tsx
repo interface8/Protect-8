@@ -83,7 +83,7 @@ export default function RightsHeader({ count, searchQuery, setSearchQuery }: Rig
             <BookOpen className="w-7 h-7 text-[#c4922a]" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
+            <h1 className="text-xl md:text-2xl lg:text-[21px] font-semibold text-white">
               Know Your Rights
             </h1>
             <p className="text-lg md:text-xl text-white/40 pt-2">

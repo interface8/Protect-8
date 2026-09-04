@@ -22,7 +22,7 @@ export default function HomeQuickAccess() {
   return (
     <div className="w-full bg-[#f3f4f6]">
       <div className="w-[90%] md:w-[75%] mx-auto py-4 md:py-6">
-        <h3 className="text-base md:text-lg font-semibold text-[#727271] uppercase tracking-wider mb-4 md:mb-6 text-left">
+        <h3 className="text-sm md:text-base font-semibold text-[#727271] uppercase tracking-wider mb-4 md:mb-6 text-left">
           Quick Access
         </h3>
         <div className="grid grid-cols-3 gap-2 md:gap-4 lg:gap-6">
@@ -33,8 +33,8 @@ export default function HomeQuickAccess() {
               <Link key={item.title} href={item.href}>
                 <Card className="p-2 md:px-5 md:py-6 hover:shadow-md transition-all duration-200 hover:scale-[1.01] cursor-pointer border-[#554116]/10 hover:border-[#c4922a]/30 bg-white">
                   <div className="flex flex-col items-start gap-1 md:gap-2">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-[#0a0a0a] rounded-full flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                    <div className="w-10 h-10 md:w-14 md:h-14 bg-[#0a0a0a] rounded-full flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 md:w-6 md:h-6 text-white" />
                     </div>
                     <div className="text-left">
                       {/* Mobile: line breaks, Desktop: straight text */}
