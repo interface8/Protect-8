@@ -9,6 +9,7 @@ export interface Lawyer {
   price: number;
   responseTime: string;
   availability: boolean;
+  avatar?: string; // NEW: optional avatar URL
 }
 
 export interface LawyerDetail extends Lawyer {
@@ -18,4 +19,5 @@ export interface LawyerDetail extends Lawyer {
   languages: string[];
   about: string;
   practiceAreas: string[];
+  avatar?: string; // NEW: optional avatar URL
 }
