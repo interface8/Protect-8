@@ -5,6 +5,16 @@ import { Card } from "@/components/ui/card";
 import { Guide } from "@/types/rights";
 import { iconMap } from "@/lib/icon-map";
 
+// Color mapping for each icon
+const iconColors: Record<string, string> = {
+  car: "#ef4444", // red
+  handcuffs: "#c4922a", // gold
+  building: "#3b82f6", // blue
+  map: "#10b981", // green
+  "shield-heart": "#8b5cf6", // purple
+  briefcase: "#92400e", // brown
+};
+
 interface RightsCardProps {
   guide: Guide;
   onClick: () => void;
@@ -12,6 +22,7 @@ interface RightsCardProps {
 
 export default function RightsCard({ guide, onClick }: RightsCardProps) {
   const Icon = iconMap[guide.iconKey];
+  const iconColor = iconColors[guide.iconKey] || "#6b7280";
 
   return (
     <Card
@@ -19,9 +30,9 @@ export default function RightsCard({ guide, onClick }: RightsCardProps) {
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-[#e8e8e8] rounded-xl flex items-center justify-center p-4">
-            <Icon className="w-7 h-7 text-[#554116]" />
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 bg-[#e8e8e8] rounded-xl flex items-center justify-center p-4">
+            <Icon className="w-8 h-8" style={{ color: iconColor }} />
           </div>
           <div>
             <h3 className="font-semibold text-[#554116] text-xl md:text-2xl">
@@ -32,7 +43,7 @@ export default function RightsCard({ guide, onClick }: RightsCardProps) {
             </p>
           </div>
         </div>
-        <ChevronRight className="w-7 h-7 text-[#554116]/40 flex-shrink-0" />
+        <ChevronRight className="w-8 h-8 text-[#554116]/40 flex-shrink-0" />
       </div>
     </Card>
   );
