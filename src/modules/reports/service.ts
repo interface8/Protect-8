@@ -48,7 +48,7 @@ async function calculateSummary() {
     prisma.emergencyRequest.count({
       where: {
         status: {
-          in: ["RESPONDED", "RESOLVED", "CLOSED"],
+          in: ["MATCHED", "ACCEPTED", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
         },
       },
     }),
