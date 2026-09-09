@@ -181,27 +181,44 @@ async function main() {
       {
         userId: citizenUser.id,
         category: "Police harassment",
+        categoryId: "police-arrest",
         message: "Need urgent help after police stop.",
-        status: "OPEN",
+        status: "REQUESTED",
       },
       {
         userId: citizenUser.id,
         category: "Domestic violence",
+        categoryId: "domestic-violence",
         message: "Need immediate support and legal guidance.",
         assignedToId: lawyerUser.id,
-        status: "RESPONDED",
+        status: "MATCHED",
         respondedAt: new Date(now.getTime() - 30 * 60 * 1000),
       },
       {
         userId: citizenUser.id,
         category: "Land dispute",
+        categoryId: "land-dispute",
         message: "Boundary issue with a neighbor.",
         assignedToId: lawyerUser.id,
-        status: "RESOLVED",
+        status: "COMPLETED",
         respondedAt: new Date(now.getTime() - 90 * 60 * 1000),
         resolvedAt: new Date(now.getTime() - 15 * 60 * 1000),
       },
     ],
+  });
+
+  const seededEmergencyRequests = await prisma.emergencyRequest.findMany({
+    where: { userId: citizenUser.id },
+    select: { id: true, status: true, userId: true },
+  });
+
+  await prisma.emergencyRequestStatusHistory.createMany({
+    data: seededEmergencyRequests.map((request) => ({
+      requestId: request.id,
+      fromStatus: null,
+      toStatus: request.status,
+      actorId: request.userId,
+    })),
   });
 
   await prisma.subscription.createMany({
