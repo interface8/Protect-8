@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PUBLIC_LAWYER_FILTERS } from "./public-types";
 
 export const lawyerVerificationStatusSchema = z.enum([
   "PENDING",
@@ -34,4 +35,21 @@ export const lawyerListFiltersSchema = z.object({
 
 export const rejectLawyerSchema = z.object({
   reason: z.string().min(3, "Rejection reason is required"),
+});
+
+export const publicLawyerFilterSchema = z.enum(PUBLIC_LAWYER_FILTERS);
+
+export const publicLawyerQuerySchema = z.object({
+  search: z.string().trim().optional(),
+  filter: publicLawyerFilterSchema.optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(12),
+});
+
+export const availableLawyerQuerySchema = z.object({
+  limit: z.coerce.number().int().positive().max(20).default(4),
+});
+
+export const lawyerAvailabilitySchema = z.object({
+  availabilityStatus: z.enum(["AVAILABLE", "BUSY", "OFFLINE"]),
 });
