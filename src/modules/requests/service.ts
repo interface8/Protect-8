@@ -1,4 +1,5 @@
 import * as requestRepo from "./repository";
+import * as lawyerRepo from "@/modules/lawyers/repository";
 import type {
   CreateRequestInput,
   RequestDto,
@@ -19,6 +20,16 @@ export async function getRequestById(id: string): Promise<RequestDto> {
 }
 
 export async function createRequest(input: CreateRequestInput) {
+  if (input.lawyerId) {
+    const lawyerProfile = await lawyerRepo.findLawyerProfileByUserId(
+      input.lawyerId,
+    );
+
+    if (!lawyerProfile || !lawyerProfile.isMatchable) {
+      throw new Error("Lawyer is not eligible for assignment");
+    }
+  }
+
   return requestRepo.createRequest(input);
 }
 

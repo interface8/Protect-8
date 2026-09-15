@@ -153,10 +153,12 @@ export async function createRequest(
   const request = await prisma.request.create({
     data: {
       citizenId: input.citizenId,
+      lawyerId: input.lawyerId ?? null,
       category: input.category,
       title: input.title,
       description: input.description ?? null,
-      status: "OPEN",
+      status: input.lawyerId ? "ASSIGNED" : "OPEN",
+      assignedAt: input.lawyerId ? new Date() : null,
     },
     ...requestWithRelations,
   });
