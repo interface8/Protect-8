@@ -152,6 +152,42 @@ async function main() {
     },
   });
 
+  await prisma.lawyerProfile.upsert({
+    where: { userId: lawyerUser.id },
+    update: {
+      barEnrollmentNumber: "NBA-DEMO-2026",
+      practiceLicenseUrl: "https://example.com/demo-lawyer-license.pdf",
+      idDocumentUrl: "https://example.com/demo-lawyer-id.pdf",
+      practiceAreas: ["Property Law", "Land Disputes", "Civil Law"],
+      languages: ["English", "Yoruba"],
+      yearsOfExperience: 8,
+      verificationStatus: "APPROVED",
+      isMatchable: true,
+      availabilityStatus: "OFFLINE",
+      consultationFee: new Prisma.Decimal("25000"),
+      responseTimeSeconds: 120,
+      reviewedById: adminUser.id,
+      reviewedAt: new Date(),
+      rejectionReason: null,
+    },
+    create: {
+      userId: lawyerUser.id,
+      barEnrollmentNumber: "NBA-DEMO-2026",
+      practiceLicenseUrl: "https://example.com/demo-lawyer-license.pdf",
+      idDocumentUrl: "https://example.com/demo-lawyer-id.pdf",
+      practiceAreas: ["Property Law", "Land Disputes", "Civil Law"],
+      languages: ["English", "Yoruba"],
+      yearsOfExperience: 8,
+      verificationStatus: "APPROVED",
+      isMatchable: true,
+      availabilityStatus: "OFFLINE",
+      consultationFee: new Prisma.Decimal("25000"),
+      responseTimeSeconds: 120,
+      reviewedById: adminUser.id,
+      reviewedAt: new Date(),
+    },
+  });
+
     const now = new Date();
 
   await prisma.emergencyRequest.deleteMany({
