@@ -9,7 +9,7 @@ export const requestStatusSchema = z.enum([
 ]);
 
 export const createRequestSchema = z.object({
-  citizenId: z.string().min(1, "Citizen is required"),
+  lawyerId: z.string().min(1).optional(),
   category: z.string().min(2, "Category is required"),
   title: z.string().min(3, "Title is required"),
   description: z.string().trim().max(4000).optional().nullable(),
