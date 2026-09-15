@@ -54,7 +54,7 @@ export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId }: 
     setErrors((prev) => ({ ...prev, time: error || undefined }));
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const dateError = validateDate(date);
     const timeError = validateTime(time);
 
@@ -67,20 +67,33 @@ export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId }: 
     }
 
     setLoading(true);
-    // TODO: Replace with real API call
-    // await fetch("/api/requests", {
-    //   method: "POST",
-    //   body: JSON.stringify({
-    //     lawyerId,
-    //     consultationType,
-    //     date,
-    //     time,
-    //   }),
-    // });
-    setTimeout(() => {
-      setLoading(false);
+    setErrors({});
+
+    try {
+      const res = await fetch("/api/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lawyerId,
+          category: "General Consultation",
+          title: `${consultationType} consultation on ${date} at ${time}`,
+          description: `Consultation scheduled for ${date} at ${time}`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrors({ time: data.message ?? "Booking failed" });
+        return;
+      }
+
       setStep(3);
-    }, 1500);
+    } catch {
+      setErrors({ time: "Something went wrong" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -92,7 +105,6 @@ export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId }: 
     onClose();
   };
 
-  // Step 3: Confirmation
   if (step === 3) {
     return (
       <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">

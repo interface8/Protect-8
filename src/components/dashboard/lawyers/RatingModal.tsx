@@ -16,7 +16,6 @@ export default function RatingModal({
   isOpen,
   onClose,
   lawyerName,
-  lawyerId,
   requestId,
 }: RatingModalProps) {
   const [rating, setRating] = useState(0);
@@ -24,6 +23,7 @@ export default function RatingModal({
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
   if (!isOpen) return null;
 
@@ -31,15 +31,31 @@ export default function RatingModal({
     if (rating === 0) return;
 
     setLoading(true);
-    // TODO: Replace with real API call
-    // await fetch("/api/request-ratings", {
-    //   method: "POST",
-    //   body: JSON.stringify({ requestId, lawyerId, rating, comment }),
-    // });
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/requests/${requestId}/ratings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating,
+          comment: comment.trim() || null,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message ?? "Failed to submit rating");
+        return;
+      }
+
       setSubmitted(true);
-    }, 1000);
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -79,6 +95,13 @@ export default function RatingModal({
           <h2 className="text-2xl font-bold text-[#0a0a0a]">Rate Your Experience</h2>
           <p className="text-gray-500 text-sm mt-1">How was your consultation with {lawyerName}?</p>
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
         <div className="flex justify-center gap-2 mb-4">
           {[1, 2, 3, 4, 5].map((star) => (
