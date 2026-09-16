@@ -35,6 +35,14 @@ export interface RequestDto {
 
 export interface CreateRequestInput {
   citizenId: string;
+  lawyerProfileId?: string;
+  category: string;
+  title: string;
+  description?: string | null;
+}
+
+export interface CreateRequestRecordInput {
+  citizenId: string;
   lawyerId?: string;
   category: string;
   title: string;

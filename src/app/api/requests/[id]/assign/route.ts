@@ -27,13 +27,28 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
 
-    const updated = await requestService.assignLawyer(id, parsed.data.lawyerId);
+    const updated = await requestService.assignLawyer(
+      id,
+      parsed.data.lawyerProfileId,
+    );
     return jsonResponse(updated);
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "Request not found") {
       return errorResponse("Request not found", 404);
     }
+    if (
+      error instanceof Error &&
+      error.message === "Lawyer is not eligible for assignment"
+    ) {
+      return errorResponse("Lawyer is not eligible for assignment", 400);
+    }
 
+    if (
+      error instanceof Error &&
+      error.message === "Only open requests can be assigned"
+    ) {
+      return errorResponse("Only open requests can be assigned", 409);
+    }
     const message =
       error instanceof Error ? error.message : "Failed to assign lawyer";
     return errorResponse(message, 500);
