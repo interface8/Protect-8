@@ -68,12 +68,6 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       );
     }
 
-    if (guard.role !== "admin") {
-      if ("lawyerId" in parsed.data || "status" in parsed.data) {
-        return errorResponse("Forbidden", 403);
-      }
-    }
-
     const updated = await requestService.updateRequest(
       id,
       guard.role === "admin"
