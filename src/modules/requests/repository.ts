@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type {
-  CreateRequestInput,
+  CreateRequestRecordInput,
   PaginatedRequestResult,
   RequestDto,
   RequestFilters,
@@ -148,7 +148,7 @@ export async function listRequests(
 }
 
 export async function createRequest(
-  input: CreateRequestInput,
+  input: CreateRequestRecordInput,
 ): Promise<RequestDto> {
   const request = await prisma.request.create({
     data: {

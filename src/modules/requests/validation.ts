@@ -9,7 +9,7 @@ export const requestStatusSchema = z.enum([
 ]);
 
 export const createRequestSchema = z.object({
-  lawyerId: z.string().min(1).optional(),
+  lawyerProfileId: z.string().min(1).optional(),
   category: z.string().min(2, "Category is required"),
   title: z.string().min(3, "Title is required"),
   description: z.string().trim().max(4000).optional().nullable(),
@@ -20,7 +20,6 @@ export const updateRequestSchema = z
     category: z.string().min(2).optional(),
     title: z.string().min(3).optional(),
     description: z.string().trim().max(4000).optional().nullable(),
-    lawyerId: z.string().min(1).optional().nullable(),
     status: requestStatusSchema.optional(),
   })
   .refine(
@@ -28,7 +27,6 @@ export const updateRequestSchema = z
       data.category !== undefined ||
       data.title !== undefined ||
       data.description !== undefined ||
-      data.lawyerId !== undefined ||
       data.status !== undefined,
     {
       message: "Provide at least one field to update",
@@ -44,7 +42,7 @@ export const requestFiltersSchema = z.object({
 });
 
 export const assignRequestSchema = z.object({
-  lawyerId: z.string().min(1, "Lawyer is required"),
+  lawyerProfileId: z.string().min(1, "Lawyer profile is required"),
 });
 
 export const transitionRequestStatusSchema = z.object({
