@@ -7,7 +7,6 @@ import LawyerHeader from "@/components/dashboard/lawyers/LawyerHeader";
 import LawyerFilters from "@/components/dashboard/lawyers/LawyerFilters";
 import LawyerGrid from "@/components/dashboard/lawyers/LawyerGrid";
 import { Lawyer } from "@/types/lawyers";
-import { mockLawyers } from "@/lib/mock-data/lawyers";
 
 // Debounce helper
 function useDebounce<T>(value: T, delay: number): T {
@@ -33,46 +32,48 @@ export default function FindLawyerPage() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [availableCount, setAvailableCount] = useState(0);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Fetch lawyers (mock data for now)
+  // Fetch lawyers from API
   useEffect(() => {
     async function fetchLawyers() {
       try {
-        // TODO: Replace with real API call
-        // const res = await fetch("/api/lawyers");
-        // const data = await res.json();
-        // setLawyers(data.data);
-
-        // Using mock data for now
-        setLawyers(mockLawyers);
-        setLoading(false);
+        const res = await fetch("/api/lawyers");
+        if (!res.ok) throw new Error("Failed to fetch lawyers");
+        const data = await res.json();
+        setLawyers(data.data);
+        setAvailableCount(data.availableNowCount ?? 0);
       } catch (err) {
         setError("Failed to load lawyers");
         console.error(err);
+      } finally {
         setLoading(false);
       }
     }
     fetchLawyers();
   }, []);
 
-  // Filter lawyers based on search, filter, and availability
+  // Filter lawyers based on search and filter
   const filteredLawyers = useMemo(() => {
     let result = lawyers;
 
     // Filter by availability
     if (activeFilter === "available") {
-      result = result.filter((lawyer) => lawyer.availability);
+      result = result.filter(
+        (lawyer) => lawyer.availabilityStatus === "AVAILABLE"
+      );
     }
 
     // Filter by specialty
     if (activeFilter !== "all" && activeFilter !== "available") {
-      result = result.filter((lawyer) =>
-        lawyer.specialty.toLowerCase().includes(activeFilter.toLowerCase()) ||
-        lawyer.subSpecialties.some((sub) =>
-          sub.toLowerCase().includes(activeFilter.toLowerCase())
-        )
+      result = result.filter(
+        (lawyer) =>
+          lawyer.practiceArea.toLowerCase().includes(activeFilter.toLowerCase()) ||
+          lawyer.specialtyTags.some((tag) =>
+            tag.toLowerCase().includes(activeFilter.toLowerCase())
+          )
       );
     }
 
@@ -82,9 +83,9 @@ export default function FindLawyerPage() {
       result = result.filter(
         (lawyer) =>
           lawyer.name.toLowerCase().includes(query) ||
-          lawyer.specialty.toLowerCase().includes(query) ||
-          lawyer.subSpecialties.some((sub) =>
-            sub.toLowerCase().includes(query)
+          lawyer.practiceArea.toLowerCase().includes(query) ||
+          lawyer.specialtyTags.some((tag) =>
+            tag.toLowerCase().includes(query)
           )
       );
     }
@@ -92,8 +93,8 @@ export default function FindLawyerPage() {
     return result;
   }, [lawyers, activeFilter, debouncedSearch]);
 
-  const handleCardClick = (slug: string) => {
-    router.push(`/find-a-lawyer/${slug}`);
+  const handleCardClick = (id: string) => {
+    router.push(`/find-a-lawyer/${id}`);
   };
 
   if (loading) {
@@ -118,7 +119,7 @@ export default function FindLawyerPage() {
   return (
     <>
       <LawyerHeader
-        count={filteredLawyers.length}
+        count={availableCount}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
