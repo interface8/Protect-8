@@ -5,6 +5,7 @@ import type {
   PaginatedRequestResult,
   RequestDto,
   RequestFilters,
+  RequestListItemDto,
   UpdateRequestInput,
 } from "./types";
 
@@ -122,6 +123,7 @@ export async function findRequestByIdRaw(id: string) {
 
 export async function listRequests(
   filters: RequestFilters = {},
+  viewerId?: string,
 ): Promise<PaginatedRequestResult> {
   const { page = 1, limit = 10 } = filters;
   const skip = (page - 1) * limit;
@@ -138,8 +140,32 @@ export async function listRequests(
     prisma.request.count({ where }),
   ]);
 
+  const ratings =
+    viewerId && data.length > 0
+      ? await prisma.requestRating.findMany({
+          where: {
+            raterUserId: viewerId,
+            requestId: {
+              in: data.map((request) => request.id),
+            },
+          },
+          select: {
+            requestId: true,
+          },
+        })
+      : [];
+
+  const ratedRequestIds = new Set(
+    ratings.map((rating) => rating.requestId),
+  );
+
   return {
-    data: data.map((request) => toRequestDto(request as RequestRecord)),
+    data: data.map(
+      (request): RequestListItemDto => ({
+        ...toRequestDto(request as RequestRecord),
+        hasRated: viewerId ? ratedRequestIds.has(request.id) : false,
+      }),
+    ),
     total,
     page,
     limit,

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await requestService.listRequests(filters);
+    const result = await requestService.listRequests(filters, guard.id);
     return jsonResponse(result);
   } catch (error: unknown) {
     const message =
