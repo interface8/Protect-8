@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 interface RatingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onRated?: () => void;
   lawyerName: string;
   lawyerId: string;
   requestId: string;
@@ -15,6 +16,7 @@ interface RatingModalProps {
 export default function RatingModal({
   isOpen,
   onClose,
+  onRated,
   lawyerName,
   requestId,
 }: RatingModalProps) {
@@ -34,7 +36,7 @@ export default function RatingModal({
     setError("");
 
     try {
-      const res = await fetch(`/api/requests/${requestId}/ratings`, {
+      const res = await fetch(`/api/requests/${requestId}/rating`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -46,11 +48,16 @@ export default function RatingModal({
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 409) {
+          onClose();
+          return;
+        }
         setError(data.message ?? "Failed to submit rating");
         return;
       }
 
       setSubmitted(true);
+      if (onRated) onRated();
     } catch {
       setError("Something went wrong");
     } finally {
@@ -96,7 +103,6 @@ export default function RatingModal({
           <p className="text-gray-500 text-sm mt-1">How was your consultation with {lawyerName}?</p>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
             {error}

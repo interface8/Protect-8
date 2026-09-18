@@ -74,7 +74,7 @@ export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId }: 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          lawyerId,
+          lawyerProfileId: lawyerId,
           category: "General Consultation",
           title: `${consultationType} consultation on ${date} at ${time}`,
           description: `Consultation scheduled for ${date} at ${time}`,
