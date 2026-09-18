@@ -24,7 +24,7 @@ export const quickAccessItems = [
   {
     title: "AI Assistant",
     description: "Get instant guidance",
-    icon: "MessagesSquare",  // ← Changed from Bot
+    icon: "MessagesSquare",
     href: "/ai-assistant",
   },
 ];
@@ -47,31 +47,6 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
-
-// Lawyer Profiles - Mock (Available Now section)
-export const mockLawyers = [
-  {
-    id: "1",
-    name: "Adaeze Okonkwo",
-    specialty: "Criminal Law",
-    rating: 4.9,
-    time: "<2min",
-  },
-  {
-    id: "2",
-    name: "Emeka Nwosu",
-    specialty: "Civil Rights",
-    rating: 4.8,
-    time: "<5min",
-  },
-  {
-    id: "3",
-    name: "Fatima Al-Hassan",
-    specialty: "Employment Law",
-    rating: 4.7,
-    time: "<10min",
-  },
-];
 
 // Platform Stats - Mock (Black container)
 export const platformStats = [
