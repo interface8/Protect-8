@@ -98,7 +98,7 @@ export default function RatingTrigger() {
     };
   }, []);
 
-  // Called when the user successfully rates
+
   function handleRated() {
     if (pending) {
       shownRequestIds.current.add(pending.requestId);
@@ -107,7 +107,7 @@ export default function RatingTrigger() {
     setPending(null);
   }
 
-  // Called when the user closes without rating
+ 
   function handleClose() {
     setPending(null);
   }
