@@ -15,7 +15,7 @@ export default function LawyerCard({ lawyer, onClick }: LawyerCardProps) {
     currency: "NGN",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(lawyer.price);
+  }).format(lawyer.consultationFee);
 
   return (
     <Card
@@ -27,14 +27,14 @@ export default function LawyerCard({ lawyer, onClick }: LawyerCardProps) {
         <h3 className="font-semibold text-[#554116] text-base md:text-lg">
           {lawyer.name}
         </h3>
-        <p className="text-sm text-[#c4922a] font-medium">{lawyer.specialty}</p>
+        <p className="text-sm text-[#c4922a] font-medium">{lawyer.practiceArea}</p>
       </div>
 
       {/* Sub-specialties */}
       <div className="flex flex-wrap gap-1 mb-2">
-        {lawyer.subSpecialties.slice(0, 3).map((sub, index, arr) => (
-          <span key={sub} className="text-xs text-[#0a0a0a]/50">
-            {sub}
+        {lawyer.specialtyTags.slice(0, 3).map((tag, index, arr) => (
+          <span key={tag} className="text-xs text-[#0a0a0a]/50">
+            {tag}
             {index < arr.length - 1 && index < 2 && " · "}
           </span>
         ))}
@@ -47,12 +47,12 @@ export default function LawyerCard({ lawyer, onClick }: LawyerCardProps) {
           <span className="text-sm font-medium text-[#0a0a0a]/80">
             {lawyer.rating}
           </span>
-          <span className="text-xs text-[#0a0a0a]/50">({lawyer.reviews})</span>
+          <span className="text-xs text-[#0a0a0a]/50">({lawyer.ratingCount})</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-[#0a0a0a]/60">
           <span className="font-medium text-[#554116]">{formattedPrice}</span>
           <span>·</span>
-          <span>{lawyer.responseTime}</span>
+          <span>{lawyer.responseTimeEstimate}</span>
         </div>
       </div>
     </Card>

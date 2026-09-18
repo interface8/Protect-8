@@ -6,11 +6,10 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import LawyerDetailContent from "@/components/dashboard/lawyers/LawyerDetailContent";
 import { LawyerDetail } from "@/types/lawyers";
-import { mockLawyerDetails } from "@/lib/mock-data/lawyers";
 
 export default function LawyerDetailPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const id = params.id as string;
 
   const [lawyer, setLawyer] = useState<LawyerDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,16 +18,10 @@ export default function LawyerDetailPage() {
   useEffect(() => {
     async function fetchLawyer() {
       try {
-        // TODO: Replace with real API call
-        // const res = await fetch(`/api/lawyers/${slug}`);
-        // if (!res.ok) throw new Error("Lawyer not found");
-        // const data = await res.json();
-        // setLawyer(data);
-
-        // Using mock data for now
-        const found = mockLawyerDetails[slug];
-        if (!found) throw new Error("Lawyer not found");
-        setLawyer(found);
+        const res = await fetch(`/api/lawyers/${id}`);
+        if (!res.ok) throw new Error("Lawyer not found");
+        const data = await res.json();
+        setLawyer(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load lawyer");
         console.error(err);
@@ -36,10 +29,10 @@ export default function LawyerDetailPage() {
         setLoading(false);
       }
     }
-    if (slug) {
+    if (id) {
       fetchLawyer();
     }
-  }, [slug]);
+  }, [id]);
 
   if (loading) {
     return (

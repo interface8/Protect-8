@@ -33,8 +33,21 @@ export interface RequestDto {
   lawyer: RequestParticipantDto | null;
 }
 
+export interface RequestListItemDto extends RequestDto {
+  hasRated: boolean;
+}
+
 export interface CreateRequestInput {
   citizenId: string;
+  lawyerProfileId?: string;
+  category: string;
+  title: string;
+  description?: string | null;
+}
+
+export interface CreateRequestRecordInput {
+  citizenId: string;
+  lawyerId?: string;
   category: string;
   title: string;
   description?: string | null;
@@ -57,7 +70,7 @@ export interface RequestFilters {
 }
 
 export interface PaginatedRequestResult {
-  data: RequestDto[];
+  data: RequestListItemDto[];
   total: number;
   page: number;
   limit: number;

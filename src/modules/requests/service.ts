@@ -1,4 +1,5 @@
 import * as requestRepo from "./repository";
+import * as lawyerRepo from "@/modules/lawyers/repository";
 import type {
   CreateRequestInput,
   RequestDto,
@@ -6,8 +7,11 @@ import type {
   UpdateRequestInput,
 } from "./types";
 
-export async function listRequests(filters: RequestFilters = {}) {
-  return requestRepo.listRequests(filters);
+export async function listRequests(
+  filters: RequestFilters = {},
+  viewerId?: string,
+) {
+  return requestRepo.listRequests(filters, viewerId);
 }
 
 export async function getRequestById(id: string): Promise<RequestDto> {
@@ -18,8 +22,45 @@ export async function getRequestById(id: string): Promise<RequestDto> {
   return request;
 }
 
+async function getEligibleLawyerProfile(lawyerProfileId: string) {
+  const lawyerProfile = await lawyerRepo.findLawyerProfileById(
+    lawyerProfileId,
+  );
+
+  const isEligible =
+    lawyerProfile &&
+    lawyerProfile.verificationStatus === "APPROVED" &&
+    lawyerProfile.isMatchable &&
+    lawyerProfile.user.role.name === "lawyer";
+
+  if (!isEligible) {
+    throw new Error("Lawyer is not eligible for assignment");
+  }
+
+  return lawyerProfile;
+}
+
 export async function createRequest(input: CreateRequestInput) {
-  return requestRepo.createRequest(input);
+  if (!input.lawyerProfileId) {
+    return requestRepo.createRequest({
+      citizenId: input.citizenId,
+      category: input.category,
+      title: input.title,
+      description: input.description,
+    });
+  }
+
+  const lawyerProfile = await getEligibleLawyerProfile(
+    input.lawyerProfileId,
+  );
+
+  return requestRepo.createRequest({
+    citizenId: input.citizenId,
+    lawyerId: lawyerProfile.userId,
+    category: input.category,
+    title: input.title,
+    description: input.description,
+  });
 }
 
 export async function updateRequest(id: string, input: UpdateRequestInput) {
@@ -31,8 +72,12 @@ export async function updateRequest(id: string, input: UpdateRequestInput) {
   return requestRepo.updateRequest(id, input);
 }
 
-export async function assignLawyer(id: string, lawyerId: string) {
+export async function assignLawyer(
+  id: string,
+  lawyerProfileId: string,
+) {
   const existing = await requestRepo.findRequestById(id);
+
   if (!existing) {
     throw new Error("Request not found");
   }
@@ -41,7 +86,9 @@ export async function assignLawyer(id: string, lawyerId: string) {
     throw new Error("Only open requests can be assigned");
   }
 
-  return requestRepo.assignLawyerToRequest(id, lawyerId);
+  const lawyerProfile = await getEligibleLawyerProfile(lawyerProfileId);
+
+  return requestRepo.assignLawyerToRequest(id, lawyerProfile.userId);
 }
 
 export async function startRequest(id: string) {

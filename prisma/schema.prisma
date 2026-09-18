@@ -40,10 +40,38 @@ enum KnowledgeCenterCategory {
 }
 
 enum EmergencyRequestStatus {
-  OPEN
-  RESPONDED
-  RESOLVED
-  CLOSED
+  REQUESTED
+  MATCHED
+  ACCEPTED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum EmergencyRequestTriggerSource {
+  NEED_LAWYER_NOW
+  SOS
+}
+
+enum EmergencyHistoryActorType {
+  USER
+  SYSTEM
+}
+
+enum EmergencyActionType {
+  MATCHING
+  LAWYER_NOTIFICATION
+  GPS_CAPTURE
+  EMERGENCY_DETAILS_PACKAGED
+  CONTACT_NOTIFICATION
+  LOCATION_CONSENT
+}
+
+enum EmergencyActionStatus {
+  SUCCEEDED
+  FAILED
+  SKIPPED
 }
 
 
@@ -52,6 +80,12 @@ enum SubscriptionStatus {
   PAUSED
   CANCELED
   EXPIRED
+}
+
+enum LawyerAvailabilityStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
 }
 
 model MfaRateLimit {
@@ -99,6 +133,7 @@ model User {
   auditLogs       AuditLog[] @relation("AuditLogActor")
   emergencyRequests        EmergencyRequest[] @relation("EmergencyRequests")
   assignedEmergencyRequests EmergencyRequest[] @relation("EmergencyAssignedTo")
+  emergencyRequestStatusHistory EmergencyRequestStatusHistory[] @relation("EmergencyRequestStatusHistoryActor")
   subscriptions            Subscription[]
 
   @@map("users")
@@ -202,11 +237,19 @@ model LawyerProfile {
   yearsOfExperience   Int
   verificationStatus  VerificationStatus @default(PENDING)
   isMatchable         Boolean            @default(false)
+  availabilityStatus  LawyerAvailabilityStatus @default(OFFLINE)
+  lastActivityAt      DateTime?
+  availabilityUpdatedAt DateTime?
+  latitude            Float?
+  longitude           Float?
+  locationUpdatedAt   DateTime?
   rejectionReason     String?
   reviewedById        String?
   reviewedAt          DateTime?
   rating              Float              @default(0)
   ratingCount         Int                @default(0)
+  consultationFee     Decimal            @default(0)
+  responseTimeSeconds Int                @default(120)
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -215,6 +258,8 @@ model LawyerProfile {
 
   @@index([verificationStatus])
   @@index([isMatchable])
+  @@index([availabilityStatus])
+  @@index([lastActivityAt])
   @@map("lawyer_profiles")
 }
 
@@ -379,25 +424,87 @@ model ReportSummary {
   @@map("report_summaries")
 }
 
+model EmergencyCategory {
+  id        String   @id
+  key       String   @unique
+  label     String
+  iconKey   String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests EmergencyRequest[]
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("emergency_categories")
+}
+
 model EmergencyRequest {
   id           String                 @id @default(cuid())
   userId       String
-  status       EmergencyRequestStatus @default(OPEN)
+  status       EmergencyRequestStatus @default(REQUESTED)
+  triggerSource EmergencyRequestTriggerSource @default(NEED_LAWYER_NOW)
   category     String
+  categoryId   String?
   message      String?
+  location     String?
+  preferredLanguage String?
+  latitude     Float?
+  longitude    Float?
+  locationConsent Boolean @default(false)
+  sosTriggeredAt DateTime?
   assignedToId String?
   respondedAt  DateTime?
   resolvedAt   DateTime?
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
 
-  user       User  @relation("EmergencyRequests", fields: [userId], references: [id], onDelete: Cascade)
-  assignedTo User? @relation("EmergencyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  user              User                          @relation("EmergencyRequests", fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo        User?                         @relation("EmergencyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  emergencyCategory EmergencyCategory?             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  statusHistory     EmergencyRequestStatusHistory[]
+  actionLogs        EmergencyActionLog[]
 
   @@index([userId])
   @@index([status])
+  @@index([categoryId])
   @@index([createdAt])
   @@map("emergency_requests")
+}
+
+model EmergencyRequestStatusHistory {
+  id         String                  @id @default(cuid())
+  requestId  String
+  fromStatus EmergencyRequestStatus?
+  toStatus   EmergencyRequestStatus
+  actorId    String?
+  actorType  EmergencyHistoryActorType @default(USER)
+  createdAt  DateTime                @default(now())
+
+  request EmergencyRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  actor   User?            @relation("EmergencyRequestStatusHistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([requestId, createdAt])
+  @@index([actorId])
+  @@map("emergency_request_status_history")
+}
+
+model EmergencyActionLog {
+  id           String                @id @default(cuid())
+  requestId    String
+  actionType   EmergencyActionType
+  status       EmergencyActionStatus
+  errorMessage String?
+  metadata     Json?
+  createdAt    DateTime              @default(now())
+
+  request EmergencyRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
+  @@index([actionType])
+  @@map("emergency_action_logs")
 }
 
 model Subscription {
@@ -420,3 +527,4 @@ model Subscription {
   @@index([createdAt])
   @@map("subscriptions")
 }
+

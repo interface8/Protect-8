@@ -11,7 +11,9 @@ export async function GET(request: NextRequest) {
   const guard = await requireApiRole(["citizen", "lawyer", "admin"]);
   if (isErrorResponse(guard)) return guard;
 
-  const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
+  const searchParams = Object.fromEntries(
+    request.nextUrl.searchParams.entries(),
+  );
 
   const parsed = requestFiltersSchema.safeParse({
     ...searchParams,
@@ -41,7 +43,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await requestService.listRequests(filters);
+    const result = await requestService.listRequests(filters, guard.id);
     return jsonResponse(result);
   } catch (error: unknown) {
     const message =
@@ -77,6 +79,12 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to create request";
+    if (
+      error instanceof Error &&
+      error.message === "Lawyer is not eligible for assignment"
+    ) {
+      return errorResponse("Lawyer is not eligible for assignment", 400);
+    }
     return errorResponse(message, 500);
   }
 }

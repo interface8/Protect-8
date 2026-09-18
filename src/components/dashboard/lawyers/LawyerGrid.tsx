@@ -5,7 +5,7 @@ import LawyerCard from "./LawyerCard";
 
 interface LawyerGridProps {
   lawyers: Lawyer[];
-  onCardClick: (slug: string) => void;
+  onCardClick: (id: string) => void;
 }
 
 export default function LawyerGrid({ lawyers, onCardClick }: LawyerGridProps) {
@@ -23,7 +23,7 @@ export default function LawyerGrid({ lawyers, onCardClick }: LawyerGridProps) {
         <LawyerCard
           key={lawyer.id}
           lawyer={lawyer}
-          onClick={() => onCardClick(lawyer.slug)}
+          onClick={() => onCardClick(lawyer.id)}
         />
       ))}
     </div>
