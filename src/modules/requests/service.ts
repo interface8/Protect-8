@@ -7,8 +7,11 @@ import type {
   UpdateRequestInput,
 } from "./types";
 
-export async function listRequests(filters: RequestFilters = {}) {
-  return requestRepo.listRequests(filters);
+export async function listRequests(
+  filters: RequestFilters = {},
+  viewerId?: string,
+) {
+  return requestRepo.listRequests(filters, viewerId);
 }
 
 export async function getRequestById(id: string): Promise<RequestDto> {
