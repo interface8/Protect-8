@@ -70,7 +70,7 @@
 
 "use client";
 
-import { useCurrentUser } from "@/hooks/UseCurrentUser";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface TopBarProps {
   pageTitle: string;

@@ -183,7 +183,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Bell, User, CircleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import LocationPopup from "@/components/dashboard/LocationPopup";
-import { useCurrentUser } from "@/hooks/UseCurrentUser";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const situations = [
   { label: "Traffic Stop", emoji: "🚓" },

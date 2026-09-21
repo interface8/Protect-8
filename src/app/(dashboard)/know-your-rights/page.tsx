@@ -1,62 +1,55 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
+import { Loader2 } from "lucide-react";
 import RightsHeader from "@/components/dashboard/rights/RightsHeader";
 import RightsCardGrid from "@/components/dashboard/rights/RightsCardGrid";
 import { Guide } from "@/types/rights";
-import { Loader2 } from "lucide-react";
 
 export default function KnowYourRightsPage() {
-  const router = useRouter();
   const [guides, setGuides] = useState<Guide[]>([]);
-  const [filteredGuides, setFilteredGuides] = useState<Guide[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchGuides() {
       try {
-        const res = await fetch("/api/rights-guides");
+        const res = await fetch("/api/rights-guides", { signal: controller.signal });
         if (!res.ok) throw new Error("Failed to fetch guides");
         const data = await res.json();
-        setGuides(data.data);
-        setFilteredGuides(data.data);
+        setGuides(data.data ?? []);
       } catch (err) {
+        if (controller.signal.aborted) return;
         setError("Failed to load rights guides");
         console.error(err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
+
     fetchGuides();
+    return () => controller.abort();
   }, []);
 
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredGuides(guides);
-      return;
-    }
+  const filteredGuides = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    const filtered = guides.filter(
+    if (!query) return guides;
+    return guides.filter(
       (guide) =>
         guide.title.toLowerCase().includes(query) ||
         guide.shortDescription.toLowerCase().includes(query)
     );
-    setFilteredGuides(filtered);
-  }, [searchQuery, guides]);
-
-  const handleCardClick = (slug: string) => {
-    router.push(`/know-your-rights/${slug}`);
-  };
+  }, [guides, searchQuery]);
 
   if (loading) {
     return (
-      <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#f5f3f0]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-16 h-16 text-[#c4922a] animate-spin" />
-          <p className="text-sm text-[#554116]/60 animate-pulse">Loading rights guides...</p>
+          <Loader2 className="h-10 w-10 animate-spin text-[#c4922a]" />
+          <p className="animate-pulse text-sm text-gray-500">Loading rights guides...</p>
         </div>
       </div>
     );
@@ -64,24 +57,28 @@ export default function KnowYourRightsPage() {
 
   if (error) {
     return (
-      <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#f5f3f0]">
         <p className="text-red-500">{error}</p>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-[calc(100vh-4rem)] bg-[#f5f3f0]">
       <RightsHeader
-        count={filteredGuides.length}
+        count={guides.length}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
-      <div className="w-full bg-[#f3f4f6]">
-        <div className="w-full px-4 md:px-6 xl:w-[55%] xl:mx-auto py-8">
-          <RightsCardGrid guides={filteredGuides} onCardClick={handleCardClick} />
-        </div>
+      <div className="mx-auto w-[90%] max-w-[688px] pb-10 pt-6">
+        {filteredGuides.length > 0 ? (
+          <RightsCardGrid guides={filteredGuides} />
+        ) : (
+          <p className="py-10 text-center text-sm text-gray-500">
+            No scenarios match &quot;{searchQuery}&quot;.
+          </p>
+        )}
       </div>
-    </>
+    </div>
   );
 }
