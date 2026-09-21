@@ -1,42 +1,52 @@
-import { NextRequest } from "next/server";
-import { userService, createUserSchema } from "@/modules/users";
-import { signJwt, setAuthCookie } from "@/lib/auth";
-import { jsonResponse, errorResponse } from "@/lib/http";
+import { NextRequest, NextResponse } from "next/server";
+import { authService, registerSchema } from "@/modules/auth";
+import { setAuthCookies } from "@/lib/auth/cookies";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const parsed = createUserSchema.safeParse(body);
+    const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
-      return Response.json(
-        { message: "Validation failed", errors: parsed.error.flatten().fieldErrors },
+      return NextResponse.json(
+        {
+          message: "Validation failed",
+          errors: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 },
       );
     }
 
-    const user = await userService.createUser(parsed.data);
+    const session = await authService.register(parsed.data);
 
-    const token = await signJwt({ sub: user.id, email: user.email });
-    await setAuthCookie(token);
-
-    return jsonResponse(
+    const response = NextResponse.json(
       {
         message: "Registration successful",
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        },
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        user: session.user,
       },
-      201,
+      { status: 201 },
     );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    if (error.message === "Email already in use") {
-      return errorResponse("Email already in use", 409);
-    }
-    console.error("Register error:", error);
-    return errorResponse("Internal server error", 500);
+
+    return setAuthCookies(response, session.accessToken, session.refreshToken);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+
+    const status =
+      message === "Account already exists"
+        ? 409
+        : message === "Role not found"
+          ? 400
+          : message === "Provide password or OAuth token"
+            ? 400
+            : message === "Google sign-in is not configured"
+              ? 503
+              : message === "Apple sign-in is not yet available"
+                ? 503
+                : 500;
+
+    return NextResponse.json({ message }, { status });
   }
 }

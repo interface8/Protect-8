@@ -1,13 +1,6 @@
-import { NextRequest } from "next/server";
-import { z } from "zod";
-import { userService } from "@/modules/users";
-import { signJwt, setAuthCookie } from "@/lib/auth";
-import { jsonResponse, errorResponse } from "@/lib/http";
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+import { NextRequest, NextResponse } from "next/server";
+import { authService, loginSchema } from "@/modules/auth";
+import { setAuthCookies } from "@/lib/auth/cookies";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,29 +8,41 @@ export async function POST(request: NextRequest) {
     const parsed = loginSchema.safeParse(body);
 
     if (!parsed.success) {
-      return errorResponse("Invalid credentials format", 400);
+      return NextResponse.json(
+        {
+          message: "Validation failed",
+          errors: parsed.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      );
     }
 
-    const { email, password } = parsed.data;
-    const user = await userService.verifyCredentials(email, password);
+    const session = await authService.login(parsed.data);
 
-    if (!user) {
-      return errorResponse("Invalid email or password", 401);
-    }
-
-    const token = await signJwt({ sub: user.id, email: user.email });
-    await setAuthCookie(token);
-
-    return jsonResponse({
-      message: "Login successful",
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
+    const response = NextResponse.json(
+      {
+        message: "Login successful",
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        user: session.user,
       },
-    });
+      { status: 200 },
+    );
+
+    return setAuthCookies(response, session.accessToken, session.refreshToken);
   } catch (error) {
-    console.error("Login error:", error);
-    return errorResponse("Internal server error", 500);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+
+    const status =
+      message === "Invalid credentials"
+        ? 401
+        : message === "Google sign-in is not configured"
+          ? 503
+          : message === "Apple sign-in is not yet available"
+            ? 503
+            : 500;
+
+    return NextResponse.json({ message }, { status });
   }
 }

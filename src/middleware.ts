@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { verifyAccessToken } from "@/lib/auth/token";
+import { AUTH_COOKIE_NAME, SUPPORTED_ROLES } from "@/lib/auth/constants";
 
-const AUTH_COOKIE_NAME = "protect8_token";
-const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password"];
-const PROTECTED_ROUTE_PREFIX = "/dashboard";
-
-function getSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET not set");
-  return new TextEncoder().encode(secret);
+function getRolePrefix(pathname: string) {
+  if (pathname.startsWith("/admin")) return "admin";
+  if (pathname.startsWith("/lawyer")) return "lawyer";
+  if (pathname.startsWith("/citizen")) return "citizen";
+  return null;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip non-page requests (static files, api, _next)
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -24,50 +21,45 @@ export async function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const rolePrefix = getRolePrefix(pathname);
 
-  // ─── Validate token ──────────────────────────────────
-  let isAuthenticated = false;
-
-  if (token) {
-    try {
-      const { payload } = await jwtVerify(token, getSecret());
-      isAuthenticated = !!payload.sub;
-
-      // Attach user info to headers for downstream use
-      const response = NextResponse.next();
-      response.headers.set("x-user-id", payload.sub as string);
-      response.headers.set("x-user-email", (payload.email as string) ?? "");
-
-      // If authenticated user tries to access public routes, redirect to dashboard
-      if (PUBLIC_ROUTES.includes(pathname)) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-
-      return response;
-    } catch {
-      // Invalid token — treat as unauthenticated
-      isAuthenticated = false;
+  if (!token) {
+    if (rolePrefix) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
     }
+
+    return NextResponse.next();
   }
 
-  // ─── Protect dashboard routes ─────────────────────────
-  if (!isAuthenticated && pathname.startsWith(PROTECTED_ROUTE_PREFIX)) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+  const payload = await verifyAccessToken(token);
+
+  if (!payload) {
+    if (rolePrefix) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  if (!SUPPORTED_ROLES.includes(payload.role)) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  const response = NextResponse.next();
+  response.headers.set("x-user-id", payload.sub);
+  response.headers.set("x-user-role", payload.role);
+
+  if (rolePrefix && payload.role !== rolePrefix) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
+  return response;
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
