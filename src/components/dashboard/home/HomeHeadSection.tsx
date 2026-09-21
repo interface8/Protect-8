@@ -180,67 +180,45 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ArrowRight,
-  Bell,
-  User,
-  CircleAlert,
-  Car,
-  Scale,
-  Building,
-  House,
-  Shield,
-  Lock,
-  Briefcase,
-  AlertTriangle,
-  Laptop,
-  Plane,
-  FileText,
-} from "lucide-react";
+import { ArrowRight, Bell, User, CircleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import LocationPopup from "@/components/dashboard/LocationPopup";
+import { useCurrentUser } from "@/hooks/UseCurrentUser";
 
 const situations = [
-  { label: "Traffic Stop", icon: Car, color: "#ef4444" },
-  { label: "Police Arrest", icon: Scale, color: "#c4922a" },
-  { label: "EFCC Issue", icon: Building, color: "#ffffff" },
-  { label: "Land Dispute", icon: House, color: "#f59e0b" },
-  { label: "Domestic Violence", icon: Shield, color: "#8b5cf6" },
-  { label: "Security Agency", icon: Lock, color: "#c4922a" },
-  { label: "Employment Matter", icon: Briefcase, color: "#92400e" },
-  { label: "Fraud", icon: AlertTriangle, color: "#eab308" },
-  { label: "Cybercrime", icon: Laptop, color: "#06b6d4" },
-  { label: "Immigration", icon: Plane, color: "#ffffff" },
-  { label: "Other", icon: FileText, color: "#ffffff" },
+  { label: "Traffic Stop", emoji: "🚓" },
+  { label: "Police Arrest", emoji: "⚖️" },
+  { label: "EFCC Issue", emoji: "🏛️" },
+  { label: "Land Dispute", emoji: "🏡" },
+  { label: "Domestic Violence", emoji: "🛡️" },
+  { label: "Security Agency", emoji: "🔒" },
+  { label: "Employment Matter", emoji: "💼" },
+  { label: "Fraud", emoji: "⚠️" },
+  { label: "Cybercrime", emoji: "💻" },
+  { label: "Immigration", emoji: "✈️" },
+  { label: "Other", emoji: "📋" },
 ];
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 export default function HomeHeadSection() {
   const router = useRouter();
+  const { user, loading } = useCurrentUser();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedSituation, setSelectedSituation] = useState<string>("");
-  const [userName, setUserName] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [selectedSituation, setSelectedSituation] = useState("");
+  const [greeting, setGreeting] = useState("Good morning");
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("/api/users/me");
-        if (response.ok) {
-          const data = await response.json();
-          setUserName(data.name);
-        }
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
+    setGreeting(getGreeting());
   }, []);
 
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+  const toggleDropdown = () => setIsDropdownOpen((open) => !open);
 
   const handleSituationClick = (label: string) => {
     setSelectedSituation(label);
@@ -248,47 +226,67 @@ export default function HomeHeadSection() {
     setIsDropdownOpen(false);
   };
 
+  const goToEmergency = (coords?: { lat: number; lng: number }) => {
+    if (coords) {
+      try {
+        sessionStorage.setItem("protect8:location", JSON.stringify(coords));
+      } catch {
+        // storage unavailable, continue without it
+      }
+    }
+    router.push(`/emergency?situation=${encodeURIComponent(selectedSituation)}`);
+  };
+
   const handleAllowLocation = () => {
-    console.log("Location allowed for:", selectedSituation);
     setIsPopupOpen(false);
-    router.push("/emergency");
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      goToEmergency();
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        goToEmergency({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => goToEmergency(),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+    );
   };
 
   const handleContinueWithoutLocation = () => {
-    console.log("Continuing without location for:", selectedSituation);
     setIsPopupOpen(false);
-    router.push("/emergency");
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
+    goToEmergency();
   };
 
   return (
     <div className="w-full bg-[#0a0a0a]">
-      <div className="w-[90%] max-w-5xl mx-auto space-y-6 md:space-y-7 pt-10 pb-8 md:pb-7">
+      <div className="mx-auto w-[90%] max-w-5xl space-y-6 pb-8 pt-10 md:space-y-7 md:pb-7">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-base md:text-sm text-white/50">Good morning</p>
-            <h1 className="mt-0.5 text-3xl font-medium text-white">
-              {loading ? "Loading..." : userName || "User"}
-            </h1>
+            <p className="text-base text-white/50 md:text-sm">{greeting}</p>
+            <div className="mt-0.5 h-9">
+              {loading ? (
+                <span className="inline-block h-7 w-40 animate-pulse rounded bg-white/10" />
+              ) : (
+                <h1 className="text-[22px] font-medium leading-9 text-white">
+                  {user?.name || "User"}
+                </h1>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             <button
               type="button"
               aria-label="Notifications"
-              className="relative w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/10 md:h-10 md:w-10"
             >
-              <Bell className="w-4 h-4 md:w-[18px] md:h-[18px] text-white/70" />
-              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-[#c4922a]" />
+              <Bell className="h-4 w-4 text-white/70 md:h-[18px] md:w-[18px]" />
+              <span className="absolute right-2.5 top-2 h-1.5 w-1.5 rounded-full bg-[#c4922a]" />
             </button>
             <button
               type="button"
               aria-label="Profile"
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/10 md:h-10 md:w-10"
             >
-              <User className="w-4 h-4 md:w-[18px] md:h-[18px] text-white/70" />
+              <User className="h-4 w-4 text-white/70 md:h-[18px] md:w-[18px]" />
             </button>
           </div>
         </div>
@@ -296,22 +294,35 @@ export default function HomeHeadSection() {
         {/* Emergency Card */}
         <div>
           <Card
-            className="bg-white p-5 gap-0 rounded-2xl border-0 cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl group"
+            role="button"
+            tabIndex={0}
+            aria-expanded={isDropdownOpen}
             onClick={toggleDropdown}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleDropdown();
+              }
+            }}
+            className="group cursor-pointer gap-0 rounded-2xl border-0 bg-white p-5 shadow-lg transition-all duration-200 hover:shadow-xl"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 md:gap-4">
-                <div className="w-12 h-12 bg-[#0a0a0a] rounded-xl flex items-center justify-center">
-                  <CircleAlert className="w-5 h-5 text-[#c4922a]" strokeWidth={1.75} />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0a0a0a]">
+                  <CircleAlert className="h-5 w-5 text-[#c4922a]" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium tracking-widest text-gray-500">EMERGENCY</p>
-                  <h2 className="text-base md:text-xl font-medium text-[#0a0a0a]">Need a Lawyer Now</h2>
+                  <p className="text-xs font-medium tracking-widest text-gray-500">
+                    EMERGENCY
+                  </p>
+                  <h2 className="text-base font-medium text-[#0a0a0a] md:text-xl">
+                    Need a Lawyer Now
+                  </h2>
                 </div>
               </div>
-              <div className="w-9 h-9 bg-[#0a0a0a] rounded-full flex items-center justify-center transition-colors duration-200 group-hover:bg-[#c4922a]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0a0a0a] transition-colors duration-200 group-hover:bg-[#c4922a]">
                 <ArrowRight
-                  className={`w-4 h-4 text-white transition-transform duration-200 ${
+                  className={`h-4 w-4 text-white transition-transform duration-200 ${
                     isDropdownOpen ? "-rotate-90" : ""
                   }`}
                 />
@@ -319,36 +330,33 @@ export default function HomeHeadSection() {
             </div>
           </Card>
 
-          {/* Dropdown Content */}
+          {/* Situation panel */}
           {isDropdownOpen && (
-            <div className="mt-3 bg-[#0a0a0a] rounded-2xl p-5 md:p-7 shadow-lg border border-white/10">
-              <p className="text-base font-bold text-white/40 uppercase tracking-wider mb-5">
+            <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-white/40">
                 Select Your Situation
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                {situations.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.label}
-                      className="bg-[#1a1a1a] px-4 py-3 text-base md:text-xl font-semibold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left flex items-center gap-3"
-                      onClick={() => handleSituationClick(item.label)}
-                    >
-                      <Icon className="w-5 h-5" style={{ color: item.color }} />
-                      {item.label}
-                    </button>
-                  );
-                })}
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                {situations.map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => handleSituationClick(item.label)}
+                    className="flex h-11 items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3.5 text-left text-sm font-medium text-white/90 transition-colors hover:bg-white/[0.08]"
+                  >
+                    <span className="text-base leading-none">{item.emoji}</span>
+                    {item.label}
+                  </button>
+                ))}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Location Popup */}
       <LocationPopup
         isOpen={isPopupOpen}
-        onClose={handleClosePopup}
+        onClose={() => setIsPopupOpen(false)}
         onAllow={handleAllowLocation}
         onContinue={handleContinueWithoutLocation}
       />

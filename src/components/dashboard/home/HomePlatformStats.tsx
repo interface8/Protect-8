@@ -1,26 +1,21 @@
-
-
-
-"use client";
-
 const platformStats = [
   { value: "1,200+", label: "Verified Lawyers" },
   { value: "8,400+", label: "Cases Resolved" },
-  { value: "<15s", label: "Avg Response" },
+  { value: "< 15s", label: "Avg Response" },
 ];
 
 export default function HomePlatformStats() {
   return (
-    <div className="w-full bg-[#f3f4f6] pb-20">
-      <div className="w-[90%] md:w-[75%] mx-auto bg-[#0a0a0a] rounded-2xl py-4 md:py-6 px-4 md:px-6">
-        <p className="text-xs md:text-sm font-semibold text-white/40 uppercase tracking-wider mb-4 md:mb-6">
+    <div className="w-full bg-[#f5f3f0] pb-20 md:pb-16">
+      <div className="mx-auto w-[90%] max-w-[944px] rounded-2xl bg-[#0a0a0a] p-4 md:p-6">
+        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-white/40">
           Platform
         </p>
-        <div className="flex justify-between items-start pr-20 md:pr-24">
-          {platformStats.map((stat, index) => (
-            <div key={index}>
-              <p className="text-3xl md:text-4xl font-light text-[#c4922a]">{stat.value}</p>
-              <p className="text-xs md:text-sm text-white/50">{stat.label}</p>
+        <div className="grid grid-cols-3 gap-3 md:gap-6">
+          {platformStats.map((stat) => (
+            <div key={stat.label}>
+              <p className="text-lg text-[#c4922a] md:text-xl">{stat.value}</p>
+              <p className="mt-1 text-xs text-white/50">{stat.label}</p>
             </div>
           ))}
         </div>
