@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   CheckCircle,
@@ -44,13 +45,21 @@ export default function LawyerDetailContent({ lawyer }: LawyerDetailContentProps
           </Link>
 
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-xl bg-[#c4922a]/20 flex items-center justify-center overflow-hidden flex-shrink-0">
-              {lawyer.avatar ? (
-                <img src={lawyer.avatar} alt={lawyer.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-3xl font-semibold text-white">{lawyer.name.charAt(0)}</span>
-              )}
-            </div>
+           <div className="w-24 h-24 rounded-xl bg-[#c4922a]/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+  {lawyer.avatar ? (
+    <Image
+      src={lawyer.avatar}
+      alt={lawyer.name}
+      width={96}
+      height={96}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <span className="text-3xl font-semibold text-white">
+      {lawyer.name.charAt(0)}
+    </span>
+  )}
+</div>
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
