@@ -146,27 +146,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield,
-  Phone,
+  CircleAlert,
   Home,
   BookOpen,
-  Scale,
-  Bot,
+  Users,
+  MessageSquare,
   Library,
 } from "lucide-react";
 
 const iconMap = {
   Home,
   BookOpen,
-  Scale,
-  Bot,
+  Users,
+  MessageSquare,
   Library,
 };
 
 const navItems = [
   { name: "Home", href: "/dashboard", icon: "Home" },
   { name: "Know Your Rights", href: "/know-your-rights", icon: "BookOpen" },
-  { name: "Find a Lawyer", href: "/find-a-lawyer", icon: "Scale" },
-  { name: "AI Assistant", href: "/ai-assistant", icon: "Bot" },
+  { name: "Find a Lawyer", href: "/find-a-lawyer", icon: "Users" },
+  { name: "AI Assistant", href: "/ai-assistant", icon: "MessageSquare" },
   { name: "Knowledge Center", href: "/knowledge-center", icon: "Library" },
 ];
 
@@ -176,20 +176,18 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex md:flex-col w-[240px] bg-[#0a0a0a] h-screen fixed top-0 left-0 z-40">
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-white/10 flex-shrink-0">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-11 h-11 bg-[#c4922a] rounded-xl flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
+      <div className="px-6 pt-8 pb-6 border-b border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#c4922a] rounded-lg flex items-center justify-center">
+            <Shield className="w-4 h-4 text-white" />
           </div>
-          <span className="text-2xl font-normal text-white">Protect8</span>
+          <span className="text-lg font-medium text-white">Protect8</span>
         </div>
-        <p className="text-base text-white/40 tracking-wider pl-1">
-          Emergency Legal Platform
-        </p>
+        <p className="text-xs text-white/40 mt-2">Emergency Legal Platform</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = iconMap[item.icon as keyof typeof iconMap];
@@ -197,22 +195,20 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center justify-between px-4 py-3 text-lg transition-all duration-200 font-medium ${
+              className={`flex items-center justify-between px-3 h-[38px] rounded-xl text-[15px] font-medium transition-colors ${
                 isActive
-                  ? "bg-[#2a2a2a] text-white rounded-2xl"
-                  : "text-[#4B5563] hover:text-[#9CA3AF] hover:bg-white/5 rounded-2xl"
+                  ? "bg-white/[0.07] text-white"
+                  : "text-white/50 hover:text-white/80 hover:bg-white/5"
               }`}
             >
               <div className="flex items-center gap-3">
                 <Icon
-                  className={`w-6 h-6 ${
-                    isActive ? "text-[#c4922a]" : "text-[#4B5563]"
-                  }`}
+                  className={`w-4 h-4 ${isActive ? "text-[#c4922a]" : ""}`}
                 />
                 {item.name}
               </div>
               {isActive && (
-                <span className="text-[#c4922a] text-3xl font-extrabold">|</span>
+                <span className="h-4 w-1 rounded-full bg-[#c4922a]" />
               )}
             </Link>
           );
@@ -220,21 +216,17 @@ export default function Sidebar() {
       </nav>
 
       {/* SOS Emergency */}
-      <div className="px-4 py-4 border-t border-white/10 flex-shrink-0">
-        <div className="bg-red-500/10 rounded-lg p-3 border-2 border-dashed border-red-500/40">
-          <div className="flex items-center gap-2 text-red-400 font-semibold text-lg">
-            <Phone className="w-6 h-6" />
-            SOS Emergency
-          </div>
+      <div className="px-3 pb-3 flex-shrink-0">
+        <div className="flex h-11 items-center gap-3 rounded-xl border border-dashed border-red-500/30 bg-red-500/5 px-4 text-[15px] font-medium text-white/50">
+          <CircleAlert className="w-4 h-4 text-red-500" />
+          SOS Emergency
         </div>
       </div>
 
       {/* Need help? Call */}
-      <div className="px-4 pb-4 flex-shrink-0">
-        <div className="bg-white/5 rounded-lg p-3 text-center">
-          <p className="text-sm text-white/40">Need help? Call</p>
-          <p className="text-base font-bold text-white/60 mt-1">0800-PROTECT</p>
-        </div>
+      <div className="px-4 pt-4 pb-6 flex-shrink-0">
+        <p className="text-xs text-white/40">Need help? Call</p>
+        <p className="mt-0.5 text-base font-medium text-[#c4922a]">0800-PROTECT</p>
       </div>
     </aside>
   );
