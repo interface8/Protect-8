@@ -114,7 +114,8 @@ export default function KnowledgeCenterPage() {
         setActiveCategory={setActiveCategory}
       />
       <div className="w-full bg-[#f3f4f6]">
-        <div className="w-full px-4 md:px-6 xl:w-[55%] xl:mx-auto py-8">
+        {/* Same max-w-7xl + mx-auto as KnowledgeHeader and KnowledgeCategories */}
+        <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-6">
           <KnowledgeGrid articles={filteredArticles} onCardClick={handleCardClick} />
         </div>
       </div>
