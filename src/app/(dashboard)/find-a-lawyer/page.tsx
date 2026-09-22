@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import LawyerHeader from "@/components/dashboard/lawyers/LawyerHeader";
 import LawyerFilters from "@/components/dashboard/lawyers/LawyerFilters";
@@ -13,20 +12,14 @@ function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
   }, [value, delay]);
 
   return debouncedValue;
 }
 
 export default function FindLawyerPage() {
-  const router = useRouter();
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,73 +29,71 @@ export default function FindLawyerPage() {
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Fetch lawyers from API
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchLawyers() {
       try {
-        const res = await fetch("/api/lawyers");
+        const res = await fetch("/api/lawyers", { signal: controller.signal });
         if (!res.ok) throw new Error("Failed to fetch lawyers");
         const data = await res.json();
-        setLawyers(data.data);
-        setAvailableCount(data.availableNowCount ?? 0);
+        const list: Lawyer[] = data.data ?? [];
+        setLawyers(list);
+        setAvailableCount(
+          data.availableNowCount ??
+            list.filter((l) => l.availabilityStatus === "AVAILABLE").length
+        );
       } catch (err) {
+        if (controller.signal.aborted) return;
         setError("Failed to load lawyers");
         console.error(err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
+
     fetchLawyers();
+    return () => controller.abort();
   }, []);
 
-  // Filter lawyers based on search and filter
   const filteredLawyers = useMemo(() => {
     let result = lawyers;
 
-    // Filter by availability
     if (activeFilter === "available") {
+      result = result.filter((l) => l.availabilityStatus === "AVAILABLE");
+    } else if (activeFilter !== "all") {
+      const filter = activeFilter.toLowerCase();
       result = result.filter(
-        (lawyer) => lawyer.availabilityStatus === "AVAILABLE"
+        (l) =>
+          l.practiceArea.toLowerCase().includes(filter) ||
+          l.specialtyTags.some((tag) => tag.toLowerCase().includes(filter))
       );
     }
 
-    // Filter by specialty
-    if (activeFilter !== "all" && activeFilter !== "available") {
+    const query = debouncedSearch.toLowerCase().trim();
+    if (query) {
       result = result.filter(
-        (lawyer) =>
-          lawyer.practiceArea.toLowerCase().includes(activeFilter.toLowerCase()) ||
-          lawyer.specialtyTags.some((tag) =>
-            tag.toLowerCase().includes(activeFilter.toLowerCase())
-          )
-      );
-    }
-
-    // Filter by search
-    if (debouncedSearch.trim()) {
-      const query = debouncedSearch.toLowerCase().trim();
-      result = result.filter(
-        (lawyer) =>
-          lawyer.name.toLowerCase().includes(query) ||
-          lawyer.practiceArea.toLowerCase().includes(query) ||
-          lawyer.specialtyTags.some((tag) =>
-            tag.toLowerCase().includes(query)
-          )
+        (l) =>
+          l.name.toLowerCase().includes(query) ||
+          l.practiceArea.toLowerCase().includes(query) ||
+          l.specialtyTags.some((tag) => tag.toLowerCase().includes(query))
       );
     }
 
     return result;
   }, [lawyers, activeFilter, debouncedSearch]);
 
-  const handleCardClick = (id: string) => {
-    router.push(`/find-a-lawyer/${id}`);
-  };
+  const scrollToFilters = () =>
+    document
+      .getElementById("lawyer-filters")
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
   if (loading) {
     return (
-      <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#f5f3f0]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-16 h-16 text-[#c4922a] animate-spin" />
-          <p className="text-sm text-[#554116]/60 animate-pulse">Loading lawyers...</p>
+          <Loader2 className="h-10 w-10 animate-spin text-[#c4922a]" />
+          <p className="animate-pulse text-sm text-gray-500">Loading lawyers...</p>
         </div>
       </div>
     );
@@ -110,28 +101,24 @@ export default function FindLawyerPage() {
 
   if (error) {
     return (
-      <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#f5f3f0]">
         <p className="text-red-500">{error}</p>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-[calc(100vh-4rem)] bg-[#f5f3f0]">
       <LawyerHeader
         count={availableCount}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        onFilterClick={scrollToFilters}
       />
-      <LawyerFilters
-        activeFilter={activeFilter}
-        setActiveFilter={setActiveFilter}
-      />
-      <div className="w-full bg-[#f3f4f6]">
-        <div className="w-full px-4 md:px-6 xl:w-[55%] xl:mx-auto py-8">
-          <LawyerGrid lawyers={filteredLawyers} onCardClick={handleCardClick} />
-        </div>
+      <LawyerFilters activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
+      <div className="mx-auto w-[90%] max-w-[944px] pb-10 pt-5">
+        <LawyerGrid lawyers={filteredLawyers} />
       </div>
-    </>
+    </div>
   );
 }

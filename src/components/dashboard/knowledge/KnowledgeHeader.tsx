@@ -17,8 +17,7 @@ export default function KnowledgeHeader({
 }: KnowledgeHeaderProps) {
   return (
     <div className="w-full bg-[#0a0a0a]">
-      <div className="w-full px-4 md:px-6 xl:w-[60%] xl:mx-auto pt-12 pb-14">
-
+      <div className="mx-auto w-full max-w-5xl px-4 pt-12 pb-8 md:px-6">
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-1 text-base text-white/40 hover:text-white transition-colors mb-5"
@@ -41,7 +40,6 @@ export default function KnowledgeHeader({
           </div>
         </div>
 
-       
         <div className="relative mt-2">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
           <Input

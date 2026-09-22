@@ -1,5 +1,5 @@
 const EMOJI_BY_KEYWORD: [string, string][] = [
-  ["traffic", "🚓"],
+  ["traffic", "🚗"],
   ["arrest", "⚖️"],
   ["efcc", "🏛️"],
   ["land", "🏡"],

@@ -22,17 +22,17 @@ export default function KnowledgeCategories({
 }: KnowledgeCategoriesProps) {
   return (
     <div className="w-full bg-[#f3f4f6]">
-      <div className="w-full px-4 md:px-6 xl:w-[55%] xl:mx-auto py-6">
-        <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2 md:gap-3 min-w-max">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 md:px-6">
+        <div className="scrollbar-hide overflow-x-auto">
+          <div className="flex min-w-max gap-2 md:gap-3">
             {categories.map((category) => (
               <button
                 key={category.slug}
                 onClick={() => setActiveCategory(category.slug)}
-                className={`px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full transition-colors ${
+                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                   activeCategory === category.slug
-                    ? "bg-[#c4922a] text-white"
-                    : "bg-white text-[#554116] hover:bg-[#efe2c7]"
+                    ? "bg-[#0a0a0a] text-white"
+                    : "border border-black/[0.04] bg-white text-[#554116] hover:bg-white/70"
                 }`}
               >
                 {category.label}

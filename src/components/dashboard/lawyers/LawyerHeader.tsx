@@ -1,51 +1,62 @@
 "use client";
 
 import Link from "next/link";
-import { Search, ChevronLeft } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Search, ChevronLeft, Filter } from "lucide-react";
 
 interface LawyerHeaderProps {
   count: number;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  onFilterClick?: () => void;
 }
 
 export default function LawyerHeader({
   count,
   searchQuery,
   setSearchQuery,
+  onFilterClick,
 }: LawyerHeaderProps) {
   return (
     <div className="w-full bg-[#0a0a0a]">
-      <div className="w-full px-4 md:px-6 xl:w-[60%] xl:mx-auto pt-12 pb-14">
-        {/* < Home link */}
+      <div className="mx-auto w-[90%] max-w-5xl pb-6 pt-10">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1 text-base text-white/40 hover:text-white transition-colors mb-5"
+          className="inline-flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white"
         >
-          <ChevronLeft className="w-5 h-5" />
-          <span>Home</span>
+          <ChevronLeft className="h-4 w-4" />
+          Home
         </Link>
 
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
-            Find a Lawyer
-          </h1>
-          <p className="text-sm md:text-base text-white/40">
-            {count} available right now
-          </p>
+        <div className="mt-6 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[22px] font-medium leading-7 text-white">
+              Find a Lawyer
+            </h1>
+            <p className="mt-1.5 text-sm text-white/40">
+              {count} available right now
+            </p>
+          </div>
+          {onFilterClick && (
+            <button
+              type="button"
+              onClick={onFilterClick}
+              aria-label="Filters"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/10"
+            >
+              <Filter className="h-[18px] w-[18px] text-white/70" />
+            </button>
+          )}
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mt-2">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-          <Input
+        <div className="relative mt-5">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+          <input
             type="text"
-            placeholder="Search by name or specialty..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 pr-5 py-3 h-12 bg-white/10 border-white/10 focus-visible:ring-[#c4922a] focus-visible:border-[#c4922a] rounded-full text-sm text-white placeholder:text-white/50 placeholder:text-sm"
+            placeholder="Search by name or specialty..."
+            aria-label="Search lawyers"
+            className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.05] pl-11 pr-4 text-sm text-white outline-none transition-colors placeholder:text-white/40 focus:border-[#c4922a]/50"
           />
         </div>
       </div>
