@@ -1,20 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import RightsDetailContent from "@/components/dashboard/rights/RightsDetailContent";
 import { Guide } from "@/types/rights";
-import { iconMap } from "@/lib/icon-map";
-
-const DISCLOSURE =
-  "This is general legal information, not legal advice. Always comply with lawful instructions while protecting your rights.";
 
 export default function GuideDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const slug = params.slug as string;
 
   const [guide, setGuide] = useState<Guide | null>(null);
@@ -22,30 +16,38 @@ export default function GuideDetailPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!slug) return;
+    const controller = new AbortController();
+
     async function fetchGuide() {
       try {
-        const res = await fetch(`/api/rights-guides/${slug}`);
-        if (!res.ok) throw new Error("Guide not found");
-        const data = await res.json();
-        setGuide(data);
+        const res = await fetch(`/api/rights-guides/${encodeURIComponent(slug)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          setError(res.status === 404 ? "Guide not found" : "Failed to load guide");
+          return;
+        }
+        setGuide(await res.json());
       } catch (err) {
+        if (controller.signal.aborted) return;
         setError("Failed to load guide");
         console.error(err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
-    if (slug) {
-      fetchGuide();
-    }
+
+    fetchGuide();
+    return () => controller.abort();
   }, [slug]);
 
   if (loading) {
     return (
-      <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#f5f3f0]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-16 h-16 text-[#c4922a] animate-spin animate-spin-slow" />
-          <p className="text-sm text-[#554116]/60 animate-pulse">Loading guide...</p>
+          <Loader2 className="h-10 w-10 animate-spin text-[#c4922a]" />
+          <p className="animate-pulse text-sm text-gray-500">Loading guide...</p>
         </div>
       </div>
     );
@@ -53,67 +55,17 @@ export default function GuideDetailPage() {
 
   if (error || !guide) {
     return (
-      <div className="w-full bg-[#f3f4f6] min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-3 bg-[#f5f3f0]">
         <p className="text-red-500">{error || "Guide not found"}</p>
+        <Link
+          href="/know-your-rights"
+          className="text-sm font-medium text-[#c4922a] hover:underline"
+        >
+          Back to Know Your Rights
+        </Link>
       </div>
     );
   }
 
-  const Icon = iconMap[guide.iconKey];
-
-  return (
-    <div className="w-full bg-[#f3f4f6] min-h-screen">
-      <div className="w-full px-4 md:w-[55%] md:mx-auto py-8">
-        <Link
-          href="/know-your-rights"
-          className="inline-flex items-center gap-1 text-sm text-[#554116]/60 hover:text-[#554116] transition-colors mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Know Your Rights</span>
-        </Link>
-
-        <div className="bg-[#c4922a]/10 border border-[#c4922a]/30 rounded-lg p-4 mb-6">
-          <p className="text-xs text-[#554116]/80 text-center">
-            ⚠️ {DISCLOSURE}
-          </p>
-        </div>
-
-        <Card className="p-6 md:p-8 bg-white shadow-lg rounded-2xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-[#efe2c7] rounded-xl flex items-center justify-center">
-              <Icon className="w-6 h-6 text-[#554116]" />
-            </div>
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-[#554116]">
-                {guide.title}
-              </h1>
-              <p className="text-sm text-[#0a0a0a]/60">
-                {guide.shortDescription}
-              </p>
-            </div>
-          </div>
-
-          <div className="prose prose-sm max-w-none text-[#0a0a0a]/80 whitespace-pre-wrap">
-            {guide.body}
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-[#554116]/10">
-            <p className="text-xs text-[#554116]/60 text-center">
-              ⚠️ {DISCLOSURE}
-            </p>
-          </div>
-        </Card>
-
-        <div className="mt-6 text-center">
-          <Button
-            onClick={() => router.push("/emergency")}
-            className="bg-[#c4922a] hover:bg-[#c4922a]/80 text-white h-12 px-8 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#c4922a]/25"
-          >
-            Connect to a Lawyer Now
-            <ChevronRight className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  return <RightsDetailContent guide={guide} />;
 }

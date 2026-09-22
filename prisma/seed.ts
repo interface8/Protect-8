@@ -299,15 +299,27 @@ async function main() {
     },
   });
 
-     const rightsGuideDefs = [
+    const rightsGuideDefs = [
     {
       slug: "traffic-stop",
       title: "Traffic Stop",
       iconKey: "car",
-      shortDescription:
-        "Know what to do, what to say, and what not to hand over during a traffic stop.",
-      body:
-        "If you are stopped by police while driving, stay calm and keep your hands visible. Ask why you were stopped if it is not clear. You should provide your driver's license, vehicle registration, and proof of insurance if requested, but you do not have to consent to a search without a lawful basis. Do not argue on the roadside. If you believe your rights are being violated, note the officer's name, badge number, time, location, and any witness details as soon as it is safe. If the stop escalates or you feel unsafe, seek legal help immediately.",
+      shortDescription: "Rights when pulled over by traffic police",
+      body: [
+        "## What You Should Do",
+        "1. Remain calm and pull over safely and promptly",
+        "2. Keep your hands visible on the steering wheel",
+        "3. Provide driver's license, vehicle registration, and insurance when requested",
+        "4. Ask politely for the reason for the stop",
+        "5. Inform the officer before reaching for any documents",
+        "6. You may contact your lawyer before answering further questions",
+        "",
+        "## What To Avoid",
+        "- Do not argue or resist physically under any circumstances",
+        "- Do not make sudden movements without informing the officer",
+        "- Do not consent to a vehicle search unless legally required",
+        "- Do not provide false information to an officer",
+      ].join("\n"),
       order: 1,
     },
     {
@@ -316,8 +328,19 @@ async function main() {
       iconKey: "handcuffs",
       shortDescription:
         "Understand your rights if you are being arrested or detained by police.",
-      body:
-        "If police tell you that you are under arrest, remain calm and do not resist physically. You have the right to remain silent and the right to request a lawyer. Ask for the reason for the arrest, but avoid giving detailed statements without legal advice. Do not sign documents you do not understand. If possible, remember the officers involved, the time, location, and any charges mentioned. A lawyer can help you challenge an unlawful arrest or protect your rights during questioning and detention.",
+      body: [
+        "## What You Should Do",
+        "1. Remain calm and cooperate without resisting physically",
+        "2. Ask for the reason for the arrest",
+        "3. Exercise your right to remain silent",
+        "4. Request a lawyer",
+        "5. Note the officers involved, the time, the location, and any charges mentioned",
+        "",
+        "## What To Avoid",
+        "- Do not resist arrest physically",
+        "- Do not give detailed statements without legal advice",
+        "- Do not sign documents you do not understand",
+      ].join("\n"),
       order: 2,
     },
     {
@@ -326,8 +349,19 @@ async function main() {
       iconKey: "building",
       shortDescription:
         "Learn how to respond safely to invitations from EFCC or other agencies.",
-      body:
-        "If you receive an invitation from EFCC or another government agency, read the notice carefully and confirm the issuing office, date, and reason. Do not ignore the invitation, but also do not attend without understanding the scope of the matter. Speak to a lawyer before making statements or submitting documents. Bring only what is necessary and keep copies of any letters, emails, or messages. If the invitation is vague, threatening, or appears unusual, verify it before responding and get legal support quickly.",
+      body: [
+        "## What You Should Do",
+        "1. Read the notice carefully and confirm the issuing office, date, and reason",
+        "2. Speak to a lawyer before making statements or submitting documents",
+        "3. Bring only what is necessary",
+        "4. Keep copies of all letters, emails, and messages",
+        "5. Verify any vague, threatening, or unusual invitation before responding",
+        "",
+        "## What To Avoid",
+        "- Do not ignore the invitation",
+        "- Do not attend without understanding the scope of the matter",
+        "- Do not make statements or hand over documents without legal advice",
+      ].join("\n"),
       order: 3,
     },
     {
@@ -336,8 +370,19 @@ async function main() {
       iconKey: "map",
       shortDescription:
         "Steps to protect your interest when a land boundary or ownership dispute arises.",
-      body:
-        "Land disputes often depend on documents, witnesses, and history of possession. Gather your title documents, survey plans, receipts, agreements, photographs, and any correspondence related to the land. Do not destroy structures or use force to settle the matter. Avoid verbal arrangements without written proof. If there is a disagreement over boundaries or ownership, consult a lawyer early so your evidence can be organized and preserved properly.",
+      body: [
+        "## What You Should Do",
+        "1. Gather your title documents, survey plans, receipts, and agreements",
+        "2. Collect photographs and any correspondence related to the land",
+        "3. Note the witnesses who can confirm your history of possession",
+        "4. Put every arrangement in writing",
+        "5. Consult a lawyer early so your evidence is organized and preserved",
+        "",
+        "## What To Avoid",
+        "- Do not destroy structures on the land",
+        "- Do not use force to settle the matter",
+        "- Do not rely on verbal arrangements without written proof",
+      ].join("\n"),
       order: 4,
     },
     {
@@ -346,8 +391,18 @@ async function main() {
       iconKey: "shield-heart",
       shortDescription:
         "Safety-first guidance if you are facing abuse or threats at home.",
-      body:
-        "If you are in immediate danger, leave the area if it is safe to do so and contact emergency services or a trusted person right away. Save messages, photos, medical reports, and any other evidence of abuse if it is safe to keep them. Do not confront an abusive person alone if doing so may increase risk. Reach out for legal help and support services quickly. A lawyer can help you understand protective options and urgent next steps.",
+      body: [
+        "## What You Should Do",
+        "1. If you are in immediate danger, leave the area if it is safe to do so",
+        "2. Contact emergency services or a trusted person right away",
+        "3. Save messages, photos, and medical reports if it is safe to keep them",
+        "4. Reach out for legal help and support services quickly",
+        "5. Ask a lawyer about protective options and urgent next steps",
+        "",
+        "## What To Avoid",
+        "- Do not confront an abusive person alone if it may increase your risk",
+        "- Do not delete evidence of abuse that you can safely keep",
+      ].join("\n"),
       order: 5,
     },
     {
@@ -356,8 +411,17 @@ async function main() {
       iconKey: "briefcase",
       shortDescription:
         "Know your options when dealing with dismissal, unpaid salary, or workplace issues.",
-      body:
-        "If you have a workplace problem, keep your employment letter, payslips, emails, chat messages, and any disciplinary notices. Do not resign in anger without understanding the consequences. If you were dismissed, suspended, or not paid as expected, record the dates and the exact messages exchanged. Review your contract and speak with a lawyer before accepting any settlement or signing a release you do not understand.",
+      body: [
+        "## What You Should Do",
+        "1. Keep your employment letter, payslips, emails, chat messages, and disciplinary notices",
+        "2. Record the dates and the exact messages exchanged",
+        "3. Review your contract",
+        "4. Speak with a lawyer before accepting any settlement",
+        "",
+        "## What To Avoid",
+        "- Do not resign in anger without understanding the consequences",
+        "- Do not sign a release you do not understand",
+      ].join("\n"),
       order: 6,
     },
   ];
