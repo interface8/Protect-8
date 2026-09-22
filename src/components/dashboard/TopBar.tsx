@@ -1,76 +1,45 @@
-
-
-
 // "use client";
 
-// import { Menu, X } from "lucide-react";
+// import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 // interface TopBarProps {
 //   pageTitle: string;
-//   isSidebarOpen: boolean;
-//   toggleSidebar: () => void;
 // }
 
-// // Hardcoded user data (temporary)
-// const userData = {
-//   name: "Chukwuemeka",
-//   trialDaysRemaining: 7,
-// };
-
-// // Helper function for initials - takes first two names
-// function getInitials(name: string): string {
-//   const nameParts = name.trim().split(" ");
-//   if (nameParts.length >= 2) {
-//     return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
-//   }
-//   return nameParts[0].charAt(0).toUpperCase();
+// function getInitials(name?: string | null): string {
+//   const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
+//   if (parts.length === 0) return "U";
+//   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+//   return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
 // }
 
-// export default function TopBar({ pageTitle, isSidebarOpen, toggleSidebar }: TopBarProps) {
-//   const initials = getInitials(userData.name);
+// export default function TopBar({ pageTitle }: TopBarProps) {
+//   const { user } = useCurrentUser();
 
 //   return (
-//     <header className="bg-white border-b border-[#554116]/10 px-4 md:px-8 py-5 flex items-center justify-between sticky top-0 z-30">
-//       {/* Left side: Hamburger + Page Title */}
+//     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-black/5 bg-white px-4 md:px-8">
+//       <span className="text-sm font-normal text-[#0a0a0a]">{pageTitle}</span>
+
 //       <div className="flex items-center gap-3">
-//         {/* Hamburger Button - visible on mobile only */}
-//         <button
-//           onClick={toggleSidebar}
-//           className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-[#efe2c7] transition-colors"
-//           aria-label="Toggle sidebar"
-//         >
-//           {isSidebarOpen ? (
-//             <X className="w-5 h-5 text-[#554116]" />
-//           ) : (
-//             <Menu className="w-5 h-5 text-[#554116]" />
-//           )}
-//         </button>
-
-//         {/* Active page title */}
-//         <span className="text-xl font-normal text-[#554116]">{pageTitle}</span>
-//       </div>
-
-//       {/* Right side: Trial Plan + Avatar */}
-//       <div className="flex items-center gap-6">
-//         {/* Trial Plan Badge */}
-//         <div className="bg-white px-4 py-2 border border-gray-200 border-solid rounded-full">
-//           <span className="text-sm font-medium text-[#554116]">
-//             Trial Plan · {userData.trialDaysRemaining} days remaining
-//           </span>
+//         <div className="rounded-full border border-black/10 px-3 py-1">
+//           <span className="text-xs text-gray-500">Trial Plan</span>
 //         </div>
-
-//         {/* User Avatar */}
-//         <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white text-base font-semibold">
-//           {initials}
+//         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0a0a0a] text-xs font-medium text-white">
+//           {getInitials(user?.name)}
 //         </div>
 //       </div>
 //     </header>
 //   );
 // }
 
+
 "use client";
 
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { User, LogOut, LogIn } from "lucide-react";
+import { useCurrentUser, clearCurrentUser } from "@/hooks/useCurrentUser";
 
 interface TopBarProps {
   pageTitle: string;
@@ -84,7 +53,42 @@ function getInitials(name?: string | null): string {
 }
 
 export default function TopBar({ pageTitle }: TopBarProps) {
-  const { user } = useCurrentUser();
+  const router = useRouter();
+  const { user, loading } = useCurrentUser();
+  const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      clearCurrentUser();
+      router.push("/login");
+    } catch {
+      setLoggingOut(false);
+    }
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-black/5 bg-white px-4 md:px-8">
@@ -94,9 +98,70 @@ export default function TopBar({ pageTitle }: TopBarProps) {
         <div className="rounded-full border border-black/10 px-3 py-1">
           <span className="text-xs text-gray-500">Trial Plan</span>
         </div>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0a0a0a] text-xs font-medium text-white">
-          {getInitials(user?.name)}
-        </div>
+
+        {loading ? (
+          // Loading skeleton
+          <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+        ) : user ? (
+          // Logged in — avatar with dropdown
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-label="Account menu"
+              aria-expanded={open}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0a0a0a] text-xs font-medium text-white transition-opacity hover:opacity-80"
+            >
+              {getInitials(user.name)}
+            </button>
+
+            {open && (
+              <div className="absolute right-0 mt-2 w-48 rounded-xl border border-black/5 bg-white py-1 shadow-lg">
+                <div className="px-3 py-2 border-b border-black/5">
+                  <p className="text-sm font-medium text-[#0a0a0a] truncate">
+                    {user.name}
+                  </p>
+                </div>
+
+                <Link
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-[#0a0a0a] hover:bg-[#f3f4f6]"
+                >
+                  <User className="w-4 h-4 text-[#c4922a]" />
+                  Profile
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {loggingOut ? "Logging out..." : "Logout"}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          // Not logged in — Login / Register buttons
+          <div className="flex items-center gap-2">
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-[#0a0a0a] hover:bg-[#f3f4f6]"
+            >
+              <LogIn className="w-4 h-4" />
+              Login
+            </Link>
+            <Link
+              href="/register"
+              className="rounded-lg bg-[#0a0a0a] px-3 py-1.5 text-sm text-white hover:bg-[#2a2a2a]"
+            >
+              Register
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );
