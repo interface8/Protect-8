@@ -258,7 +258,7 @@ export default function RightsDetailContent({ guide }: RightsDetailContentProps)
 
         {/* CTA */}
         <Link
-          href="/emergency"
+          href="/find-a-lawyer"
           className="flex h-[52px] w-full items-center justify-center rounded-xl bg-[#0a0a0a] text-sm font-medium text-white transition-colors hover:bg-[#1f1f1f]"
         >
           Connect to a Lawyer Now
