@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const pathname = `avatars/${guard.id}/${Date.now()}.${extension}`;
 
     const blob = await put(pathname, file, {
-      access: "public",
+      access: "private",
     });
 
     const user = await userService.setUserAvatar(guard.id, blob.url);
