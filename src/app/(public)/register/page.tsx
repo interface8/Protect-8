@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Card,
@@ -18,7 +19,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Mail, Lock, User, ArrowRight, Check, X, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-[#f5f3f0]" />}><RegisterPageContent /></Suspense>;
+}
+
+function RegisterPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
 
   // Form state
   const [name, setName] = useState("");
@@ -102,7 +109,8 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/dashboard");
+      const returnTo = searchParams.get("returnTo");
+      router.push(returnTo && returnTo.startsWith("/") ? returnTo : "/dashboard");
       router.refresh();
     } catch {
       setError("Something went wrong");

@@ -7,13 +7,7 @@ export async function GET() {
   if (isErrorResponse(guard)) return guard;
 
   try {
-    const summary = await reportService.getReportSummary();
-
-    if (!summary) {
-      return errorResponse("Report summary not available yet", 404);
-    }
-
-    return jsonResponse(summary);
+    return jsonResponse(await reportService.getLiveReportSummary());
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to fetch report summary";

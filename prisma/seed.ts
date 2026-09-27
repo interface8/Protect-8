@@ -161,9 +161,15 @@ async function main() {
       practiceAreas: ["Property Law", "Land Disputes", "Civil Law"],
       languages: ["English", "Yoruba"],
       yearsOfExperience: 8,
+      city: "Lagos",
+      state: "Lagos State",
       verificationStatus: "APPROVED",
       isMatchable: true,
-      availabilityStatus: "OFFLINE",
+      availabilityStatus: "AVAILABLE",
+      lastActivityAt: new Date(),
+      availabilityUpdatedAt: new Date(),
+      latitude: 6.5244,
+      longitude: 3.3792,
       consultationFee: new Prisma.Decimal("25000"),
       responseTimeSeconds: 120,
       reviewedById: adminUser.id,
@@ -178,15 +184,136 @@ async function main() {
       practiceAreas: ["Property Law", "Land Disputes", "Civil Law"],
       languages: ["English", "Yoruba"],
       yearsOfExperience: 8,
+      city: "Lagos",
+      state: "Lagos State",
       verificationStatus: "APPROVED",
       isMatchable: true,
-      availabilityStatus: "OFFLINE",
+      availabilityStatus: "AVAILABLE",
+      lastActivityAt: new Date(),
+      availabilityUpdatedAt: new Date(),
+      latitude: 6.5244,
+      longitude: 3.3792,
       consultationFee: new Prisma.Decimal("25000"),
       responseTimeSeconds: 120,
       reviewedById: adminUser.id,
       reviewedAt: new Date(),
     },
   });
+
+  const extraLawyers = [
+    { name: "Amina Bello", email: "amina.bello@protect8.dev", barNumber: "NBA-DEMO-2026-02", areas: ["Criminal Law", "Police Arrest", "Traffic Law"], city: "Lagos", state: "Lagos State", latitude: 6.5244, longitude: 3.3792, availability: "AVAILABLE" as const, fee: "30000", experience: 10 },
+    { name: "Chidi Okafor", email: "chidi.okafor@protect8.dev", barNumber: "NBA-DEMO-2026-03", areas: ["Property Law", "Land Disputes"], city: "Abuja", state: "FCT", latitude: 9.0765, longitude: 7.3986, availability: "AVAILABLE" as const, fee: "35000", experience: 12 },
+    { name: "Tunde Adebayo", email: "tunde.adebayo@protect8.dev", barNumber: "NBA-DEMO-2026-04", areas: ["Employment Law", "Civil Law"], city: "Ibadan", state: "Oyo State", latitude: 7.3775, longitude: 3.947, availability: "OFFLINE" as const, fee: "20000", experience: 7 },
+    { name: "Ngozi Eze", email: "ngozi.eze@protect8.dev", barNumber: "NBA-DEMO-2026-05", areas: ["Family Law", "Domestic Violence"], city: "Enugu", state: "Enugu State", latitude: 6.4584, longitude: 7.5464, availability: "OFFLINE" as const, fee: "25000", experience: 9 },
+    { name: "Musa Ibrahim", email: "musa.ibrahim@protect8.dev", barNumber: "NBA-DEMO-2026-06", areas: ["Criminal Law", "Civil Law"], city: "Kano", state: "Kano State", latitude: 12.0022, longitude: 8.592, availability: "OFFLINE" as const, fee: "18000", experience: 6 },
+    { name: "Emeka Udo", email: "emeka.udo@protect8.dev", barNumber: "NBA-DEMO-2026-07", areas: ["Employment Law", "Labour Law"], city: "Port Harcourt", state: "Rivers State", latitude: 4.8156, longitude: 7.0498, availability: "AVAILABLE" as const, fee: "28000", experience: 11 },
+    { name: "Bola Yusuf", email: "bola.yusuf@protect8.dev", barNumber: "NBA-DEMO-2026-08", areas: ["Family Law", "Domestic Violence"], city: "Lagos", state: "Lagos State", latitude: 6.4541, longitude: 3.3947, availability: "AVAILABLE" as const, fee: "32000", experience: 9 },
+    { name: "Zainab Musa", email: "zainab.musa@protect8.dev", barNumber: "NBA-DEMO-2026-09", areas: ["Immigration Law", "Cybercrime", "Financial Crime", "Security Agency Matters"], city: "Abuja", state: "FCT", latitude: 9.0579, longitude: 7.4951, availability: "AVAILABLE" as const, fee: "40000", experience: 13 },
+  ];
+
+  for (let index = 0; index < extraLawyers.length; index += 1) {
+    const lawyer = extraLawyers[index];
+    const user = await prisma.user.upsert({
+      where: { email: lawyer.email },
+      update: {
+        name: lawyer.name,
+        password: await hash("lawyer123", 12),
+        role: { connect: { id: lawyerRole.id } },
+        isActive: true,
+      },
+      create: {
+        email: lawyer.email,
+        name: lawyer.name,
+        password: await hash("lawyer123", 12),
+        roleId: lawyerRole.id,
+        isActive: true,
+      },
+    });
+    const isAvailable = lawyer.availability === "AVAILABLE";
+    await prisma.lawyerProfile.upsert({
+      where: { userId: user.id },
+      update: {
+        barEnrollmentNumber: lawyer.barNumber,
+        practiceLicenseUrl: `https://example.com/${lawyer.barNumber}-license.pdf`,
+        idDocumentUrl: `https://example.com/${lawyer.barNumber}-id.pdf`,
+        practiceAreas: lawyer.areas,
+        languages: index === 1 ? ["English", "Hausa"] : ["English", "Yoruba"],
+        yearsOfExperience: lawyer.experience,
+        city: lawyer.city,
+        state: lawyer.state,
+        verificationStatus: "APPROVED",
+        isMatchable: true,
+        availabilityStatus: lawyer.availability,
+        lastActivityAt: isAvailable ? new Date() : null,
+        availabilityUpdatedAt: isAvailable ? new Date() : null,
+        latitude: lawyer.latitude,
+        longitude: lawyer.longitude,
+        consultationFee: new Prisma.Decimal(lawyer.fee),
+        responseTimeSeconds: 120 + index * 30,
+        reviewedById: adminUser.id,
+        reviewedAt: new Date(),
+        rejectionReason: null,
+      },
+      create: {
+        userId: user.id,
+        barEnrollmentNumber: lawyer.barNumber,
+        practiceLicenseUrl: `https://example.com/${lawyer.barNumber}-license.pdf`,
+        idDocumentUrl: `https://example.com/${lawyer.barNumber}-id.pdf`,
+        practiceAreas: lawyer.areas,
+        languages: index === 1 ? ["English", "Hausa"] : ["English", "Yoruba"],
+        yearsOfExperience: lawyer.experience,
+        city: lawyer.city,
+        state: lawyer.state,
+        verificationStatus: "APPROVED",
+        isMatchable: true,
+        availabilityStatus: lawyer.availability,
+        lastActivityAt: isAvailable ? new Date() : null,
+        availabilityUpdatedAt: isAvailable ? new Date() : null,
+        latitude: lawyer.latitude,
+        longitude: lawyer.longitude,
+        consultationFee: new Prisma.Decimal(lawyer.fee),
+        responseTimeSeconds: 120 + index * 30,
+        reviewedById: adminUser.id,
+        reviewedAt: new Date(),
+      },
+    });
+  }
+
+  const emergencyCategoryDefs = [
+  { key: "traffic-stop", label: "Traffic Stop", iconKey: "traffic-stop", sortOrder: 1 },
+  { key: "police-arrest", label: "Police Arrest", iconKey: "police-arrest", sortOrder: 2 },
+  { key: "efcc-issue", label: "EFCC Issue", iconKey: "efcc-issue", sortOrder: 3 },
+  { key: "land-dispute", label: "Land Dispute", iconKey: "land-dispute", sortOrder: 4 },
+  { key: "domestic-violence", label: "Domestic Violence", iconKey: "domestic-violence", sortOrder: 5 },
+  { key: "security-agency", label: "Security Agency", iconKey: "security-agency", sortOrder: 6 },
+  { key: "employment-matter", label: "Employment Matter", iconKey: "employment-matter", sortOrder: 7 },
+  { key: "fraud", label: "Fraud", iconKey: "fraud", sortOrder: 8 },
+  { key: "cybercrime", label: "Cybercrime", iconKey: "cybercrime", sortOrder: 9 },
+  { key: "immigration", label: "Immigration", iconKey: "immigration", sortOrder: 10 },
+  { key: "other", label: "Other", iconKey: "other", sortOrder: 11 },
+];
+
+for (const category of emergencyCategoryDefs) {
+  await prisma.emergencyCategory.upsert({
+    where: { key: category.key },
+    update: {
+      label: category.label,
+      iconKey: category.iconKey,
+      sortOrder: category.sortOrder,
+      isActive: true,
+    },
+    create: {
+      id: category.key,
+      key: category.key,
+      label: category.label,
+      iconKey: category.iconKey,
+      sortOrder: category.sortOrder,
+      isActive: true,
+    },
+  });
+}
+
+console.log("  ✅ Emergency categories seeded");
 
     const now = new Date();
 
@@ -344,7 +471,7 @@ async function main() {
       order: 2,
     },
     {
-      slug: "efcc-agency-invitation",
+      slug: "efcc-issue",
       title: "EFCC / Agency Invitation",
       iconKey: "building",
       shortDescription:
@@ -423,6 +550,113 @@ async function main() {
         "- Do not sign a release you do not understand",
       ].join("\n"),
       order: 6,
+    },
+    {
+      slug: "security-agency",
+      title: "Security Agency Encounter",
+      iconKey: "shield",
+      shortDescription:
+        "Practical steps when dealing with a security agency, checkpoint, or official inquiry.",
+      body: [
+        "## What You Should Do",
+        "1. Stay calm, keep your hands visible, and follow lawful safety instructions",
+        "2. Ask which agency the officers represent and why they are stopping or contacting you",
+        "3. Provide identification or documents that are lawfully required",
+        "4. Record names, badge numbers, time, place, and witnesses when it is safe",
+        "5. Contact a lawyer if you are detained, questioned about an offence, or asked to sign a statement",
+        "",
+        "## What To Avoid",
+        "- Do not resist physically or obstruct officers",
+        "- Do not offer a bribe or give false information",
+        "- Do not sign a statement you have not read or do not understand",
+      ].join("\n"),
+      order: 7,
+    },
+    {
+      slug: "fraud",
+      title: "Fraud or Financial Crime",
+      iconKey: "shield-alert",
+      shortDescription:
+        "Protect evidence and respond carefully if you are accused of or affected by fraud.",
+      body: [
+        "## What You Should Do",
+        "1. Preserve messages, receipts, bank records, contracts, and transaction references",
+        "2. Contact your bank or payment provider promptly if money was taken or sent by mistake",
+        "3. Write down a clear timeline and keep copies of any complaint or official notice",
+        "4. Verify requests for money or sensitive information through official contact details",
+        "5. Speak with a lawyer before giving a formal statement or responding to an accusation",
+        "",
+        "## What To Avoid",
+        "- Do not delete, edit, or fabricate records",
+        "- Do not move or hide funds to avoid an investigation",
+        "- Do not publish accusations or private information while the facts are being checked",
+      ].join("\n"),
+      order: 8,
+    },
+    {
+      slug: "cybercrime",
+      title: "Cybercrime or Online Account Abuse",
+      iconKey: "laptop",
+      shortDescription:
+        "Secure your accounts and preserve digital evidence when an online incident occurs.",
+      body: [
+        "## What You Should Do",
+        "1. From a trusted device, change affected passwords and enable two-factor authentication",
+        "2. Contact your bank, mobile provider, or platform through its official support channel",
+        "3. Save URLs, messages, emails, screenshots, dates, and transaction references",
+        "4. Report immediate financial loss or threats to the appropriate authorities",
+        "5. Ask a lawyer how to preserve evidence and respond to any official request for your device or data",
+        "",
+        "## What To Avoid",
+        "- Do not delete chats, files, or account alerts that may be evidence",
+        "- Do not access another person's account or device in response",
+        "- Do not share passwords, verification codes, or recovery keys with callers or message senders",
+      ].join("\n"),
+      order: 9,
+    },
+    {
+      slug: "immigration",
+      title: "Immigration Matter",
+      iconKey: "globe",
+      shortDescription:
+        "Organize your documents and get advice about visas, permits, detention, or removal notices.",
+      body: [
+        "## What You Should Do",
+        "1. Keep copies of your passport, visa, permits, application receipts, and correspondence",
+        "2. Check the issuing authority, deadline, and instructions on every notice you receive",
+        "3. Attend required appointments and keep proof of attendance or submission",
+        "4. Ask for an interpreter if you do not understand a question or document",
+        "5. Speak with an immigration lawyer promptly if you are detained or given a deadline to leave",
+        "",
+        "## What To Avoid",
+        "- Do not ignore official deadlines or appointments",
+        "- Do not submit altered documents or make statements you know are false",
+        "- Do not sign a document you cannot read or understand without asking for help",
+      ].join("\n"),
+      order: 10,
+    },
+    {
+      slug: "other",
+      title: "Another Legal Situation",
+      iconKey: "scale",
+      shortDescription:
+        "Not sure which guide fits? Protect your records and browse all available lawyers for help.",
+      body: [
+        "## What You Should Do",
+        "1. If anyone is in immediate danger, move to safety and contact local emergency services",
+        "2. Write down what happened, when it happened, where it happened, and who was involved",
+        "3. Keep related letters, contracts, receipts, messages, photographs, and other records",
+        "4. Note any deadline, hearing date, appointment, or request for a response",
+        "5. Choose Connect to a Lawyer to browse all available lawyers and explain your situation in your enquiry",
+        "",
+        "## What To Avoid",
+        "- Do not destroy records or alter evidence",
+        "- Do not sign an agreement you do not understand",
+        "- Do not miss a stated deadline while waiting for informal advice",
+        "",
+        "This guide is a starting point. The lawyer you contact can help identify the right area of law and the next steps for your specific circumstances.",
+      ].join("\n"),
+      order: 11,
     },
   ];
 

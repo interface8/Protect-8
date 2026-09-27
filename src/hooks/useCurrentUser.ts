@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchWithSession } from "@/lib/auth/fetchWithSession";
 
 export interface CurrentUser {
   name: string;
+  role?: string;
 }
 
 let cache: CurrentUser | null = null;
@@ -18,10 +20,12 @@ export function clearCurrentUser() {
 function loadUser(): Promise<CurrentUser | null> {
   if (cache) return Promise.resolve(cache);
   if (!inflight) {
-    inflight = fetch("/api/users/me")
+    inflight = fetchWithSession("/api/users/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        cache = data?.name ? { name: data.name } : null;
+        cache = data?.name
+          ? { name: data.name, role: data.role?.name ?? data.role ?? undefined }
+          : null;
         return cache;
       })
       .catch(() => null)

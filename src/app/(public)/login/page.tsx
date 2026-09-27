@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams  } from "next/navigation";
 import Link from "next/link";
 import {
   Card,
@@ -18,7 +19,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-[#f5f3f0]" />}><LoginPageContent /></Suspense>;
+}
+
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,8 +76,11 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      const returnTo = searchParams.get("returnTo");
+      const defaultDestination = data.user?.role === "admin" ? "/admin" : "/dashboard";
+      router.push(returnTo && returnTo.startsWith("/") ? returnTo : defaultDestination);
       router.refresh();
+      
     } catch {
       setError("Something went wrong");
     } finally {

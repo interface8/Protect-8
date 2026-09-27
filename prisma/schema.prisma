@@ -74,7 +74,6 @@ enum EmergencyActionStatus {
   SKIPPED
 }
 
-
 enum SubscriptionStatus {
   ACTIVE
   PAUSED
@@ -104,37 +103,36 @@ model MfaRateLimit {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String?  @unique
-  phone         String?  @unique
+  id            String         @id @default(cuid())
+  email         String?        @unique
+  phone         String?        @unique
   password      String?
   name          String
   avatarUrl     String?
   roleId        String
   authProvider  String?
   providerId    String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  lawyerProfile         LawyerProfile?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  lawyerProfile LawyerProfile?
 
-
-  role              Role                @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  refreshTokens     RefreshToken[]
-  reviewedLawyerProfiles LawyerProfile[] @relation("LawyerProfileReviewedBy")
-  mfaCodes          MfaCode[]
-  emergencyContacts EmergencyContact[]
-  assistantConversations  AssistantConversation[]
-  citizenRequests       Request[] @relation("CitizenRequests")
-  lawyerRequests         Request[] @relation("LawyerRequests")
-  createdArticles Article[] @relation("ArticleCreatedBy")
-  updatedArticles Article[] @relation("ArticleUpdatedBy")
-  flaggedArticles Article[] @relation("ArticleFlaggedBy")
-  auditLogs       AuditLog[] @relation("AuditLogActor")
-  emergencyRequests        EmergencyRequest[] @relation("EmergencyRequests")
-  assignedEmergencyRequests EmergencyRequest[] @relation("EmergencyAssignedTo")
+  role                          Role                            @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  refreshTokens                 RefreshToken[]
+  reviewedLawyerProfiles        LawyerProfile[]                 @relation("LawyerProfileReviewedBy")
+  mfaCodes                      MfaCode[]
+  emergencyContacts             EmergencyContact[]
+  assistantConversations        AssistantConversation[]
+  citizenRequests               Request[]                       @relation("CitizenRequests")
+  lawyerRequests                Request[]                       @relation("LawyerRequests")
+  createdArticles               Article[]                       @relation("ArticleCreatedBy")
+  updatedArticles               Article[]                       @relation("ArticleUpdatedBy")
+  flaggedArticles               Article[]                       @relation("ArticleFlaggedBy")
+  auditLogs                     AuditLog[]                      @relation("AuditLogActor")
+  emergencyRequests             EmergencyRequest[]              @relation("EmergencyRequests")
+  assignedEmergencyRequests     EmergencyRequest[]              @relation("EmergencyAssignedTo")
   emergencyRequestStatusHistory EmergencyRequestStatusHistory[] @relation("EmergencyRequestStatusHistoryActor")
-  subscriptions            Subscription[]
+  subscriptions                 Subscription[]
 
   @@map("users")
 }
@@ -177,14 +175,14 @@ model RolePermission {
 }
 
 model RefreshToken {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
-  tokenHash       String   @unique
+  tokenHash       String    @unique
   expiresAt       DateTime
   revokedAt       DateTime?
   replacedByToken String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -193,17 +191,17 @@ model RefreshToken {
 }
 
 model MfaCode {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   purpose     String
   channel     String
   codeHash    String
-  attempts    Int      @default(0)
-  maxAttempts Int      @default(5)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
   expiresAt   DateTime
   usedAt      DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -227,31 +225,33 @@ model EmergencyContact {
 }
 
 model LawyerProfile {
-  id                  String             @id @default(cuid())
-  userId              String             @unique
-  barEnrollmentNumber String             @unique
-  practiceLicenseUrl  String
-  idDocumentUrl       String
-  practiceAreas       String[]
-  languages           String[]
-  yearsOfExperience   Int
-  verificationStatus  VerificationStatus @default(PENDING)
-  isMatchable         Boolean            @default(false)
-  availabilityStatus  LawyerAvailabilityStatus @default(OFFLINE)
-  lastActivityAt      DateTime?
+  id                    String                   @id @default(cuid())
+  userId                String                   @unique
+  barEnrollmentNumber   String                   @unique
+  practiceLicenseUrl    String
+  idDocumentUrl         String
+  practiceAreas         String[]
+  languages             String[]
+  yearsOfExperience     Int
+  city                  String?
+  state                 String?
+  verificationStatus    VerificationStatus       @default(PENDING)
+  isMatchable           Boolean                  @default(false)
+  availabilityStatus    LawyerAvailabilityStatus @default(OFFLINE)
+  lastActivityAt        DateTime?
   availabilityUpdatedAt DateTime?
-  latitude            Float?
-  longitude           Float?
-  locationUpdatedAt   DateTime?
-  rejectionReason     String?
-  reviewedById        String?
-  reviewedAt          DateTime?
-  rating              Float              @default(0)
-  ratingCount         Int                @default(0)
-  consultationFee     Decimal            @default(0)
-  responseTimeSeconds Int                @default(120)
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  latitude              Float?
+  longitude             Float?
+  locationUpdatedAt     DateTime?
+  rejectionReason       String?
+  reviewedById          String?
+  reviewedAt            DateTime?
+  rating                Float                    @default(0)
+  ratingCount           Int                      @default(0)
+  consultationFee       Decimal                  @default(0)
+  responseTimeSeconds   Int                      @default(120)
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
 
   user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewedBy User? @relation("LawyerProfileReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
@@ -281,17 +281,17 @@ model RightsGuide {
 }
 
 model RequestRating {
-  id           String           @id @default(cuid())
+  id           String          @id @default(cuid())
   requestId    String
   raterUserId  String
   raterType    RatingRaterType
   targetUserId String
   rating       Int
   comment      String?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
-  request      Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@unique([requestId, raterUserId, raterType])
   @@index([requestId])
@@ -301,17 +301,17 @@ model RequestRating {
 }
 
 model AssistantConversation {
-  id             String                    @id @default(cuid())
-  userId         String
-  category       String?
-  status         AssistantConversationStatus @default(ACTIVE)
-  lastMessageAt  DateTime?
-  escalatedAt    DateTime?
-  createdAt      DateTime                  @default(now())
-  updatedAt      DateTime                  @updatedAt
+  id            String                      @id @default(cuid())
+  userId        String
+  category      String?
+  status        AssistantConversationStatus @default(ACTIVE)
+  lastMessageAt DateTime?
+  escalatedAt   DateTime?
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
 
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages  AssistantMessage[]
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages AssistantMessage[]
 
   @@index([userId])
   @@index([status])
@@ -319,16 +319,16 @@ model AssistantConversation {
 }
 
 model AssistantMessage {
-  id            String   @id @default(cuid())
+  id             String   @id @default(cuid())
   conversationId String
-  role          String
-  content       String
-  category      String?
-  disclosure    String?
-  isEscalation  Boolean  @default(false)
-  metadata      Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  role           String
+  content        String
+  category       String?
+  disclosure     String?
+  isEscalation   Boolean  @default(false)
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
@@ -338,18 +338,18 @@ model AssistantMessage {
 }
 
 model Request {
-  id            String        @id @default(cuid())
-  citizenId     String
-  lawyerId      String?
-  category      String
-  title         String
-  description   String?
-  status        RequestStatus @default(OPEN)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  completedAt   DateTime?
-  assignedAt    DateTime?
-  cancelledAt   DateTime?
+  id          String        @id @default(cuid())
+  citizenId   String
+  lawyerId    String?
+  category    String
+  title       String
+  description String?
+  status      RequestStatus @default(OPEN)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  completedAt DateTime?
+  assignedAt  DateTime?
+  cancelledAt DateTime?
 
   citizen User  @relation("CitizenRequests", fields: [citizenId], references: [id], onDelete: Cascade)
   lawyer  User? @relation("LawyerRequests", fields: [lawyerId], references: [id], onDelete: SetNull)
@@ -363,26 +363,26 @@ model Request {
 }
 
 model Article {
-  id            String                   @id @default(cuid())
-  slug          String                   @unique
-  title         String
-  excerpt       String
-  body          String
-  category      KnowledgeCenterCategory
+  id              String                  @id @default(cuid())
+  slug            String                  @unique
+  title           String
+  excerpt         String
+  body            String
+  category        KnowledgeCenterCategory
   readTimeMinutes Int
-  isPublished   Boolean                  @default(true)
-  isFlagged     Boolean                  @default(false)
-  flagReason    String?
-  flaggedAt     DateTime?
-  createdById   String
-  updatedById   String?
-  flaggedById   String?
-  createdAt     DateTime                 @default(now())
-  updatedAt     DateTime                 @updatedAt
+  isPublished     Boolean                 @default(true)
+  isFlagged       Boolean                 @default(false)
+  flagReason      String?
+  flaggedAt       DateTime?
+  createdById     String
+  updatedById     String?
+  flaggedById     String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
 
-  createdBy     User                     @relation("ArticleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy     User?                    @relation("ArticleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-  flaggedBy     User?                    @relation("ArticleFlaggedBy", fields: [flaggedById], references: [id], onDelete: SetNull)
+  createdBy User  @relation("ArticleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy User? @relation("ArticleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  flaggedBy User? @relation("ArticleFlaggedBy", fields: [flaggedById], references: [id], onDelete: SetNull)
 
   @@index([category])
   @@index([isPublished])
@@ -391,14 +391,14 @@ model Article {
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  actorId     String
-  action      String
-  target      String
-  metadata    Json?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  target    String
+  metadata  Json?
+  createdAt DateTime @default(now())
 
-  actor       User     @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+  actor User @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: Cascade)
 
   @@index([actorId])
   @@index([action])
@@ -408,17 +408,17 @@ model AuditLog {
 }
 
 model ReportSummary {
-  id                         String   @id @default(cuid())
-  summaryKey                 String   @unique
-  registeredLawyers          Int      @default(0)
-  activeUsers                Int      @default(0)
-  averageLawyerResponseTime   Float    @default(0)
-  emergencyResponseRate       Float    @default(0)
-  monthlyRecurringRevenue     Decimal  @default(0)
-  caseCompletionRate          Float    @default(0)
-  computedAt                  DateTime @default(now())
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
+  id                        String   @id @default(cuid())
+  summaryKey                String   @unique
+  registeredLawyers         Int      @default(0)
+  activeUsers               Int      @default(0)
+  averageLawyerResponseTime Float    @default(0)
+  emergencyResponseRate     Float    @default(0)
+  monthlyRecurringRevenue   Decimal  @default(0)
+  caseCompletionRate        Float    @default(0)
+  computedAt                DateTime @default(now())
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
   @@index([summaryKey])
   @@map("report_summaries")
@@ -442,28 +442,28 @@ model EmergencyCategory {
 }
 
 model EmergencyRequest {
-  id           String                 @id @default(cuid())
-  userId       String
-  status       EmergencyRequestStatus @default(REQUESTED)
-  triggerSource EmergencyRequestTriggerSource @default(NEED_LAWYER_NOW)
-  category     String
-  categoryId   String?
-  message      String?
-  location     String?
+  id                String                        @id @default(cuid())
+  userId            String
+  status            EmergencyRequestStatus        @default(REQUESTED)
+  triggerSource     EmergencyRequestTriggerSource @default(NEED_LAWYER_NOW)
+  category          String
+  categoryId        String?
+  message           String?
+  location          String?
   preferredLanguage String?
-  latitude     Float?
-  longitude    Float?
-  locationConsent Boolean @default(false)
-  sosTriggeredAt DateTime?
-  assignedToId String?
-  respondedAt  DateTime?
-  resolvedAt   DateTime?
-  createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
+  latitude          Float?
+  longitude         Float?
+  locationConsent   Boolean                       @default(false)
+  sosTriggeredAt    DateTime?
+  assignedToId      String?
+  respondedAt       DateTime?
+  resolvedAt        DateTime?
+  createdAt         DateTime                      @default(now())
+  updatedAt         DateTime                      @updatedAt
 
-  user              User                          @relation("EmergencyRequests", fields: [userId], references: [id], onDelete: Cascade)
-  assignedTo        User?                         @relation("EmergencyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
-  emergencyCategory EmergencyCategory?             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  user              User                            @relation("EmergencyRequests", fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo        User?                           @relation("EmergencyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  emergencyCategory EmergencyCategory?              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   statusHistory     EmergencyRequestStatusHistory[]
   actionLogs        EmergencyActionLog[]
 
@@ -475,13 +475,13 @@ model EmergencyRequest {
 }
 
 model EmergencyRequestStatusHistory {
-  id         String                  @id @default(cuid())
+  id         String                    @id @default(cuid())
   requestId  String
   fromStatus EmergencyRequestStatus?
   toStatus   EmergencyRequestStatus
   actorId    String?
   actorType  EmergencyHistoryActorType @default(USER)
-  createdAt  DateTime                @default(now())
+  createdAt  DateTime                  @default(now())
 
   request EmergencyRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
   actor   User?            @relation("EmergencyRequestStatusHistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
@@ -513,7 +513,7 @@ model Subscription {
   planName   String
   amount     Decimal
   currency   String             @default("USD")
-  status     SubscriptionStatus  @default(ACTIVE)
+  status     SubscriptionStatus @default(ACTIVE)
   startsAt   DateTime
   endsAt     DateTime?
   canceledAt DateTime?
@@ -527,4 +527,3 @@ model Subscription {
   @@index([createdAt])
   @@map("subscriptions")
 }
-

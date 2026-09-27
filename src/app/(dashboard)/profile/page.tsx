@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, Check, X } from "lucide-react";
 import ProfilePictureCard from "@/components/dashboard/profile/ProfilePictureCard";
 import ProfileInfoCard from "@/components/dashboard/profile/ProfileInfoCard";
+import { fetchWithSession } from "@/lib/auth/fetchWithSession";
 
 export interface UserProfile {
   id: string;
@@ -26,7 +27,7 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("/api/users/me");
+        const res = await fetchWithSession("/api/users/me");
         if (!res.ok) throw new Error("Failed to load profile");
         const data = await res.json();
         setUser(data);

@@ -82,11 +82,19 @@ const pageTitles: Record<string, string> = {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
 
+  // Admin has its own control-room shell. Do not mount citizen navigation,
+  // account header, or the completed-case rating prompt in the admin area.
+  if (pathname?.startsWith("/admin")) {
+    return <div className="min-h-screen bg-[#f5f3f0]"><main>{children}</main></div>;
+  }
+
   // Get the page title based on the current path
   // If the path is a detail page like /know-your-rights/traffic-stop, show "Know Your Rights"
   let pageTitle = "Home";
   if (pathname) {
-    if (pathname.startsWith("/know-your-rights")) {
+    if (pathname.startsWith("/admin")) {
+      pageTitle = "Admin Console";
+    } else if (pathname.startsWith("/know-your-rights")) {
       pageTitle = "Know Your Rights";
     } else if (pathname.startsWith("/find-a-lawyer")) {
       pageTitle = "Find a Lawyer";

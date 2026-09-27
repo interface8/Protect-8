@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { requestService, updateRequestSchema } from "@/modules/requests";
 import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { errorResponse, jsonResponse } from "@/lib/http";
+import { auditService } from "@/modules/audit";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -78,6 +79,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
             description: parsed.data.description,
           },
     );
+    if (guard.role === "admin") {
+      await auditService.logAuditEvent({ actorId: guard.id, action: "request.updated", target: `request:${id}`, metadata: { updatedFields: Object.keys(parsed.data) } });
+    }
 
     return jsonResponse(updated);
   } catch (error: unknown) {

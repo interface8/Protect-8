@@ -44,10 +44,15 @@ export const publicLawyerQuerySchema = z.object({
   filter: publicLawyerFilterSchema.optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(12),
+  userLatitude: z.coerce.number().min(-90).max(90).optional(),   // NEW
+  userLongitude: z.coerce.number().min(-180).max(180).optional(),
 });
 
 export const availableLawyerQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(20).default(4),
+  categoryKey: z.string().trim().min(1).optional(),
+  userLatitude: z.coerce.number().min(-90).max(90).optional(),   // NEW
+  userLongitude: z.coerce.number().min(-180).max(180).optional(),
 });
 
 export const lawyerAvailabilitySchema = z.object({

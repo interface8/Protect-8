@@ -1,11 +1,14 @@
-import { jsonResponse, errorResponse } from "@/lib/http";
 import { listActiveCategories } from "@/modules/emergency/service";
+import { errorResponse, jsonResponse } from "@/lib/http";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    return jsonResponse(await listActiveCategories());
+    const categories = await listActiveCategories();
+    return jsonResponse({ data: categories });
   } catch (error) {
-    console.error("Failed to fetch emergency categories", error);
+    console.error("Failed to list emergency categories", error);
     return errorResponse("Failed to fetch emergency categories", 500);
   }
 }

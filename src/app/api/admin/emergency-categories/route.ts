@@ -7,6 +7,17 @@ import {
 } from "@/modules/emergency/service";
 import { isErrorResponse, requireApiRole } from "@/lib/auth";
 import { errorResponse, jsonResponse } from "@/lib/http";
+import { prisma } from "@/lib/prisma";
+import { auditService } from "@/modules/audit";
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const guard = await requireApiRole("admin");
+  if (isErrorResponse(guard)) return guard;
+  const data = await prisma.emergencyCategory.findMany({ orderBy: [{ sortOrder: "asc" }, { label: "asc" }] });
+  return jsonResponse({ data });
+}
 
 export async function POST(request: NextRequest) {
   const guard = await requireApiRole("admin");
@@ -28,6 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const category = await createCategory(parsed.data);
+    await auditService.logAuditEvent({ actorId: guard.id, action: "emergency_category.created", target: `emergency_category:${category.id}`, metadata: { key: category.key } });
     return jsonResponse(category, 201);
   } catch (error) {
     if (

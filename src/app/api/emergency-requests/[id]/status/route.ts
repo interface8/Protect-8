@@ -7,6 +7,7 @@ import {
 } from "@/modules/emergency/service";
 import { isErrorResponse, requireApiRole } from "@/lib/auth";
 import { errorResponse, jsonResponse } from "@/lib/http";
+import { auditService } from "@/modules/audit";
 
 interface RouteContext {
   params: { id: string };
@@ -43,6 +44,14 @@ export async function PATCH(
       guard,
       parsed.data.status,
     );
+    if (guard.role === "admin") {
+      await auditService.logAuditEvent({
+        actorId: guard.id,
+        action: "emergency_request.status_updated",
+        target: `emergency_request:${params.id}`,
+        metadata: { status: parsed.data.status },
+      });
+    }
 
     return jsonResponse(updated);
   } catch (error) {

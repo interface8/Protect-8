@@ -98,3 +98,7 @@ export async function refreshReportSummary(): Promise<ReportSummaryDto> {
 export async function getReportSummary(): Promise<ReportSummaryDto | null> {
   return reportRepo.getLatestReportSummary();
 }
+
+export async function getLiveReportSummary() {
+  return calculateSummary();
+}

@@ -22,32 +22,46 @@ function LawyersSkeleton() {
 export default function HomeAvailableNow() {
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController();
+  const controller = new AbortController();
 
-    async function fetchLawyers() {
+  async function fetchLawyers() {
+    try {
+      const params = new URLSearchParams({ limit: "3" });
       try {
-        const res = await fetch("/api/lawyers/available?limit=3", {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("Failed to fetch lawyers");
-        const data = await res.json();
-        setLawyers(data.data ?? []);
-      } catch (err) {
-        if (!controller.signal.aborted) {
-          console.error("Failed to load lawyers", err);
+        const raw = sessionStorage.getItem("protect8:location");
+        if (raw) {
+          const { lat, lng } = JSON.parse(raw);
+          if (typeof lat === "number" && typeof lng === "number") {
+            params.set("userLatitude", String(lat));
+            params.set("userLongitude", String(lng));
+          }
         }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+      } catch {
+        // ignore malformed storage
       }
+
+      const res = await fetch(`/api/lawyers/available?${params.toString()}`, {
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error("Failed to fetch lawyers");
+      const data = await res.json();
+      setLawyers(data.data ?? []);
+    } catch (err) {
+      if (!controller.signal.aborted) {
+        setFailed(true);
+        console.error("Failed to load lawyers", err);
+      }
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
     }
+  }
 
-    fetchLawyers();
-    return () => controller.abort();
-  }, []);
-
-  if (!loading && lawyers.length === 0) return null;
+  fetchLawyers();
+  return () => controller.abort();
+}, []);
 
   return (
     <div className="w-full bg-[#f5f3f0]">
@@ -66,6 +80,14 @@ export default function HomeAvailableNow() {
 
         {loading ? (
           <LawyersSkeleton />
+        ) : failed ? (
+          <p className="rounded-xl border border-black/[0.06] bg-white p-4 text-sm text-gray-500">
+            Available lawyers could not be loaded. <Link href="/find-a-lawyer" className="font-medium text-[#c4922a] hover:underline">Browse all lawyers</Link>
+          </p>
+        ) : lawyers.length === 0 ? (
+          <p className="rounded-xl border border-black/[0.06] bg-white p-4 text-sm text-gray-500">
+            No lawyers are marked available right now. <Link href="/find-a-lawyer" className="font-medium text-[#c4922a] hover:underline">Browse all lawyers</Link>
+          </p>
         ) : (
           <div className="space-y-2 md:space-y-3">
             {lawyers.slice(0, 3).map((lawyer) => (
