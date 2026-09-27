@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME } from "./constants";
+import {
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  AUTH_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+} from "./constants";
 
 const baseCookieOptions = {
   httpOnly: true,
@@ -8,7 +12,6 @@ const baseCookieOptions = {
   path: "/",
 };
 
-const ACCESS_TOKEN_MAX_AGE = 60 * 15;
 const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
 
 export function setAuthCookies(
@@ -18,7 +21,7 @@ export function setAuthCookies(
 ) {
   response.cookies.set(AUTH_COOKIE_NAME, accessToken, {
     ...baseCookieOptions,
-    maxAge: ACCESS_TOKEN_MAX_AGE,
+    maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
   });
 
   response.cookies.set(REFRESH_COOKIE_NAME, refreshToken, {

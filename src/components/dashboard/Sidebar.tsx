@@ -152,15 +152,7 @@ import {
   Users,
   MessageSquare,
   Library,
-  LayoutDashboard,
-  UserRoundCog,
-  ClipboardCheck,
-  FileText,
-  FolderOpen,
-  ListChecks,
-  ScrollText,
 } from "lucide-react";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const iconMap = {
   Home,
@@ -168,13 +160,6 @@ const iconMap = {
   Users,
   MessageSquare,
   Library,
-  LayoutDashboard,
-  UserRoundCog,
-  ClipboardCheck,
-  FileText,
-  FolderOpen,
-  ListChecks,
-  ScrollText,
 };
 
 const navItems = [
@@ -185,21 +170,8 @@ const navItems = [
   { name: "Knowledge Center", href: "/knowledge-center", icon: "Library" },
 ];
 
-const adminItems = [
-  { name: "Admin Overview", href: "/admin", icon: "LayoutDashboard" },
-  { name: "Lawyer Reviews", href: "/admin/lawyers", icon: "ClipboardCheck" },
-  { name: "Users", href: "/admin/users", icon: "UserRoundCog" },
-  { name: "Know Your Rights", href: "/admin/rights-guides", icon: "FileText" },
-  { name: "Knowledge Articles", href: "/admin/articles", icon: "BookOpen" },
-  { name: "Situations", href: "/admin/categories", icon: "FolderOpen" },
-  { name: "Requests", href: "/admin/requests", icon: "ListChecks" },
-  { name: "Audit Log", href: "/admin/audit", icon: "ScrollText" },
-];
-
 export default function Sidebar() {
   const pathname = usePathname();
-  const { user } = useCurrentUser();
-  const items = user?.role === "admin" ? [...navItems, ...adminItems] : navItems;
 
   return (
     <aside className="hidden md:flex md:flex-col w-[240px] bg-[#0a0a0a] h-screen fixed top-0 left-0 z-40">
@@ -216,7 +188,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {items.map((item) => {
+        {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
           const Icon = iconMap[item.icon as keyof typeof iconMap];
           return (

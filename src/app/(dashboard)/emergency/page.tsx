@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Loader2, MapPin, Star, X } from "lucide-react";
 import LawyerAvatar from "@/components/dashboard/lawyers/LawyerAvatar";
 import { Lawyer } from "@/types/lawyers";
+import { fetchWithSession } from "@/lib/auth/fetchWithSession";
 
 interface Category { id: string; key: string; label: string }
 
@@ -18,6 +20,10 @@ function readStoredLocation(): { lat: number; lng: number } | null {
 }
 
 export default function EmergencyPage() {
+  return <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center bg-[#f5f3f0]"><Loader2 className="h-8 w-8 animate-spin text-[#c4922a]" /></div>}><EmergencyPageContent /></Suspense>;
+}
+
+function EmergencyPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryIdParam = searchParams.get("categoryId");
@@ -70,7 +76,7 @@ export default function EmergencyPage() {
     setConnectingLawyerId(lawyer.id);
     setError("");
     try {
-      const auth = await fetch("/api/users/me");
+      const auth = await fetchWithSession("/api/users/me");
       const targetParams = new URLSearchParams();
       if (category) targetParams.set("category", category.label);
       const suffix = targetParams.toString();

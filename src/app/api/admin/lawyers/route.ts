@@ -11,12 +11,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const statusRaw = searchParams.get("status");
-    const status = statusRaw ? statusRaw.toUpperCase() : undefined;
+    const status = statusRaw
+      ? statusRaw.toLowerCase() === "all"
+        ? "all"
+        : statusRaw.toUpperCase()
+      : undefined;
 
+    // Do not pass absent query parameters as null: z.coerce.number() turns
+    // null into 0, which fails the positive page/limit validation.
+    const page = searchParams.get("page");
+    const limit = searchParams.get("limit");
     const parsed = lawyerListFiltersSchema.safeParse({
       status: status ?? "all",
-      page: searchParams.get("page"),
-      limit: searchParams.get("limit"),
+      ...(page !== null ? { page } : {}),
+      ...(limit !== null ? { limit } : {}),
     });
 
     if (!parsed.success) {

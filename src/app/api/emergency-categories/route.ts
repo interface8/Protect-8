@@ -1,6 +1,8 @@
 import { listActiveCategories } from "@/modules/emergency/service";
 import { errorResponse, jsonResponse } from "@/lib/http";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const categories = await listActiveCategories();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fetchWithSession } from "@/lib/auth/fetchWithSession";
 import { X, Calendar, Clock, Video, Users, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,7 +72,7 @@ export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId, ca
     setErrors({});
 
     try {
-      const res = await fetch("/api/requests", {
+      const res = await fetchWithSession("/api/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

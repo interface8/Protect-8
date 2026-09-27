@@ -3,6 +3,7 @@ import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { jsonResponse, errorResponse } from "@/lib/http";
 import { userService, userFiltersSchema, updateUserSchema } from "@/modules/users";
 import { auditService } from "@/modules/audit";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const guard = await requireApiRole("admin");
@@ -72,6 +73,15 @@ export async function PATCH(request: NextRequest) {
     }
 
     const before = await userService.getUserById(id);
+    const changingRole = parsed.data.roleId !== undefined && parsed.data.roleId !== before.role.id;
+    const deactivating = parsed.data.isActive === false && before.isActive;
+    if (id === guard.id && (changingRole || deactivating)) {
+      return errorResponse("You cannot remove your own admin access", 409);
+    }
+    if (before.role.name === "admin" && (changingRole || deactivating)) {
+      const activeAdmins = await prisma.user.count({ where: { isActive: true, role: { name: "admin" } } });
+      if (activeAdmins <= 1) return errorResponse("At least one active admin account must remain", 409);
+    }
     const updated = await userService.updateUser(id, parsed.data);
 
     const changedIsActive =

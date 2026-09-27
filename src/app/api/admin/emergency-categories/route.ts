@@ -10,6 +10,8 @@ import { errorResponse, jsonResponse } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { auditService } from "@/modules/audit";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const guard = await requireApiRole("admin");
   if (isErrorResponse(guard)) return guard;

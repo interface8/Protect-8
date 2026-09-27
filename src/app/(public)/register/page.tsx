@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -18,6 +19,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Mail, Lock, User, ArrowRight, Check, X, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-[#f5f3f0]" />}><RegisterPageContent /></Suspense>;
+}
+
+function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

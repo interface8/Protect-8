@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { assignRequestSchema, requestService } from "@/modules/requests";
 import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { errorResponse, jsonResponse } from "@/lib/http";
+import { auditService } from "@/modules/audit";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       id,
       parsed.data.lawyerProfileId,
     );
+    await auditService.logAuditEvent({ actorId: guard.id, action: "request.lawyer_assigned", target: `request:${id}`, metadata: { lawyerProfileId: parsed.data.lawyerProfileId, lawyerId: updated.lawyerId } });
     return jsonResponse(updated);
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "Request not found") {
