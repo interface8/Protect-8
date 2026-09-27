@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import LawyerHeader from "@/components/dashboard/lawyers/LawyerHeader";
 import LawyerFilters from "@/components/dashboard/lawyers/LawyerFilters";
 import LawyerGrid from "@/components/dashboard/lawyers/LawyerGrid";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { Lawyer } from "@/types/lawyers";
 
 // Debounce helper
@@ -28,13 +29,22 @@ export default function FindLawyerPage() {
   const [availableCount, setAvailableCount] = useState(0);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const coords = useGeolocation();
 
   useEffect(() => {
     const controller = new AbortController();
 
     async function fetchLawyers() {
       try {
-        const res = await fetch("/api/lawyers", { signal: controller.signal });
+        const params = new URLSearchParams();
+        if (coords) {
+          params.set("userLatitude", String(coords.lat));
+          params.set("userLongitude", String(coords.lng));
+        }
+
+        const res = await fetch(`/api/lawyers?${params.toString()}`, {
+          signal: controller.signal,
+        });
         if (!res.ok) throw new Error("Failed to fetch lawyers");
         const data = await res.json();
         const list: Lawyer[] = data.data ?? [];
@@ -54,7 +64,7 @@ export default function FindLawyerPage() {
 
     fetchLawyers();
     return () => controller.abort();
-  }, []);
+  }, [coords]);
 
   const filteredLawyers = useMemo(() => {
     let result = lawyers;

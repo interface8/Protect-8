@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 export interface CurrentUser {
   name: string;
+  role?: string;
 }
 
 let cache: CurrentUser | null = null;
@@ -21,7 +22,9 @@ function loadUser(): Promise<CurrentUser | null> {
     inflight = fetch("/api/users/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        cache = data?.name ? { name: data.name } : null;
+        cache = data?.name
+          ? { name: data.name, role: data.role?.name ?? data.role ?? undefined }
+          : null;
         return cache;
       })
       .catch(() => null)

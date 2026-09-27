@@ -8,6 +8,18 @@ import {
 import { errorResponse, jsonResponse } from "@/lib/http";
 import { auditService } from "@/modules/audit";
 
+export async function GET(request: NextRequest) {
+  const guard = await requireApiRole("admin");
+  if (isErrorResponse(guard)) return guard;
+  try {
+    const search = request.nextUrl.searchParams.get("search") ?? undefined;
+    const articles = await articleService.listArticles({ search });
+    return jsonResponse({ data: articles });
+  } catch (error) {
+    return errorResponse(error instanceof Error ? error.message : "Failed to fetch articles", 500);
+  }
+}
+
 export async function POST(request: NextRequest) {
   const guard = await requireApiRole(["admin"]);
   if (isErrorResponse(guard)) return guard;

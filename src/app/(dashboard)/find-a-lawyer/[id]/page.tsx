@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import LawyerDetailContent from "@/components/dashboard/lawyers/LawyerDetailContent";
@@ -9,6 +9,7 @@ import { LawyerDetail } from "@/types/lawyers";
 
 export default function LawyerDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params.id as string;
 
   const [lawyer, setLawyer] = useState<LawyerDetail | null>(null);
@@ -67,5 +68,5 @@ export default function LawyerDetailPage() {
     );
   }
 
-  return <LawyerDetailContent lawyer={lawyer} />;
+  return <LawyerDetailContent lawyer={lawyer} enquiryCategory={searchParams.get("category") ?? undefined} />;
 }

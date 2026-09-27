@@ -10,6 +10,7 @@ export interface Lawyer {
   ratingCount: number;
   consultationFee: number;
   responseTimeEstimate: string;
+  location: string | null;
 }
 
 export interface LawyerDetail extends Lawyer {

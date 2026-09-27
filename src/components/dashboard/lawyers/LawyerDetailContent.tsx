@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ChevronLeft,
   CircleCheckBig,
+  MapPin,
   Award,
   Languages,
   Clock,
@@ -20,9 +21,10 @@ import RatingModal from "./RatingModal";
 
 interface LawyerDetailContentProps {
   lawyer: LawyerDetail;
+  enquiryCategory?: string;
 }
 
-export default function LawyerDetailContent({ lawyer }: LawyerDetailContentProps) {
+export default function LawyerDetailContent({ lawyer, enquiryCategory }: LawyerDetailContentProps) {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
 
@@ -39,10 +41,11 @@ export default function LawyerDetailContent({ lawyer }: LawyerDetailContentProps
   ];
 
   const info = [
-    { icon: Award, text: `Bar #${lawyer.barMembership}` },
-    { icon: Languages, text: lawyer.languages.join(", ") },
-    { icon: Clock, text: `Responds in ${lawyer.responseTimeEstimate}` },
-  ];
+  lawyer.location ? { icon: MapPin, text: lawyer.location } : null,
+  { icon: Award, text: `Bar #${lawyer.barMembership}` },
+  { icon: Languages, text: lawyer.languages.join(", ") },
+  { icon: Clock, text: `Responds in ${lawyer.responseTimeEstimate}` },
+].filter((row): row is { icon: typeof Award; text: string } => Boolean(row));
 
   return (
     <div className="min-h-[calc(100vh-4rem)] w-full bg-[#f5f3f0]">
@@ -166,7 +169,7 @@ export default function LawyerDetailContent({ lawyer }: LawyerDetailContentProps
           onClick={() => setIsBookingOpen(true)}
           className="h-[52px] w-full rounded-2xl border border-[#0a0a0a] bg-transparent text-sm font-medium text-[#0a0a0a] transition-colors hover:bg-[#0a0a0a] hover:text-white"
         >
-          Book a Consultation
+          {enquiryCategory ? `Enquire about ${enquiryCategory}` : "Book a Consultation"}
         </button>
 
         {/* Dev-only rating test, never shipped to production */}
@@ -186,6 +189,7 @@ export default function LawyerDetailContent({ lawyer }: LawyerDetailContentProps
         onClose={() => setIsBookingOpen(false)}
         lawyerName={lawyer.name}
         lawyerId={lawyer.id}
+        category={enquiryCategory}
       />
 
       {process.env.NODE_ENV === "development" && (

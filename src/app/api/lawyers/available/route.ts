@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
 
   try {
     return jsonResponse(
-      await listAvailableLawyers(parsed.data.limit),
+      await listAvailableLawyers(
+        parsed.data.limit,
+        parsed.data.userLatitude,
+        parsed.data.userLongitude,
+        parsed.data.categoryKey,
+      ),
     );
   } catch (error) {
     console.error("Failed to list available lawyers", error);

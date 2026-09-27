@@ -11,9 +11,10 @@ interface BookingModalProps {
   onClose: () => void;
   lawyerName: string;
   lawyerId: string;
+  category?: string;
 }
 
-export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId }: BookingModalProps) {
+export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId, category }: BookingModalProps) {
   const [step, setStep] = useState(1);
   const [consultationType, setConsultationType] = useState<"virtual" | "physical">("virtual");
   const [date, setDate] = useState("");
@@ -75,9 +76,9 @@ export default function BookingModal({ isOpen, onClose, lawyerName, lawyerId }: 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           lawyerProfileId: lawyerId,
-          category: "General Consultation",
-          title: `${consultationType} consultation on ${date} at ${time}`,
-          description: `Consultation scheduled for ${date} at ${time}`,
+          category: category ?? "General Consultation",
+          title: `${consultationType} consultation${category ? ` about ${category}` : ""} on ${date} at ${time}`,
+          description: `Consultation with ${lawyerName}${category ? ` about ${category}` : ""}, scheduled for ${date} at ${time}`,
         }),
       });
 

@@ -7,11 +7,8 @@ export const PUBLIC_LAWYER_FILTERS = [
   "civil",
 ] as const;
 
-export type PublicLawyerFilter =
-  (typeof PUBLIC_LAWYER_FILTERS)[number];
-
-export type PublicAvailabilityStatus =
-  "AVAILABLE" | "BUSY" | "OFFLINE";
+export type PublicLawyerFilter = (typeof PUBLIC_LAWYER_FILTERS)[number];
+export type PublicAvailabilityStatus = "AVAILABLE" | "BUSY" | "OFFLINE";
 
 export interface PublicLawyer {
   id: string;
@@ -25,6 +22,7 @@ export interface PublicLawyer {
   ratingCount: number;
   consultationFee: number;
   responseTimeEstimate: string;
+  location: string | null;
 }
 
 export interface PublicLawyerDetail extends PublicLawyer {
@@ -38,6 +36,8 @@ export interface PublicLawyerListInput {
   filter?: PublicLawyerFilter;
   page: number;
   limit: number;
+  userLatitude?: number;
+  userLongitude?: number;
 }
 
 export interface PublicLawyerListResult {

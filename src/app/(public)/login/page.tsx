@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams  } from "next/navigation";
 import Link from "next/link";
 import {
   Card,
@@ -19,6 +19,8 @@ import { Shield, Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,8 +71,10 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      const returnTo = searchParams.get("returnTo");
+      router.push(returnTo && returnTo.startsWith("/") ? returnTo : "/dashboard");
       router.refresh();
+      
     } catch {
       setError("Something went wrong");
     } finally {

@@ -4,7 +4,7 @@ import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { jsonResponse, errorResponse } from "@/lib/http";
 
 export async function GET() {
-  const guard = await requireApiRole(["citizen", "lawyer"]);
+  const guard = await requireApiRole(["citizen", "lawyer", "admin"]);
   if (isErrorResponse(guard)) return guard;
 
   try {
@@ -20,7 +20,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
-  const guard = await requireApiRole(["citizen", "lawyer"]);
+  const guard = await requireApiRole(["citizen", "lawyer", "admin"]);
   if (isErrorResponse(guard)) return guard;
 
   try {

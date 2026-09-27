@@ -1,7 +1,4 @@
-import type {
-  LawyerAvailabilityStatus,
-  Prisma,
-} from "@prisma/client";
+import type { LawyerAvailabilityStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 const publicLawyerSelect = {
@@ -10,6 +7,10 @@ const publicLawyerSelect = {
   practiceAreas: true,
   languages: true,
   yearsOfExperience: true,
+  city: true,
+  state: true,
+  latitude: true,
+  longitude: true,
   verificationStatus: true,
   isMatchable: true,
   availabilityStatus: true,
@@ -41,19 +42,13 @@ export async function findPublicLawyerRecords() {
   return prisma.lawyerProfile.findMany({
     where: publicWhere,
     select: publicLawyerSelect,
-    orderBy: [
-      { responseTimeSeconds: "asc" },
-      { rating: "desc" },
-    ],
+    orderBy: [{ responseTimeSeconds: "asc" }, { rating: "desc" }],
   });
 }
 
 export async function findPublicLawyerRecordById(id: string) {
   return prisma.lawyerProfile.findFirst({
-    where: {
-      ...publicWhere,
-      id,
-    },
+    where: { ...publicWhere, id },
     select: publicLawyerSelect,
   });
 }
@@ -61,55 +56,33 @@ export async function findPublicLawyerRecordById(id: string) {
 export async function findLawyerProfileForAvailability(userId: string) {
   return prisma.lawyerProfile.findUnique({
     where: { userId },
-    select: {
-      id: true,
-      verificationStatus: true,
-      isMatchable: true,
-    },
+    select: { id: true, verificationStatus: true, isMatchable: true },
   });
 }
 
 export async function updateLawyerAvailability(
   userId: string,
-  availabilityStatus: LawyerAvailabilityStatus,
+  availabilityStatus: LawyerAvailabilityStatus
 ) {
   const now = new Date();
-
   return prisma.lawyerProfile.update({
     where: { userId },
-    data: {
-      availabilityStatus,
-      lastActivityAt: now,
-      availabilityUpdatedAt: now,
-    },
-    select: {
-      id: true,
-      availabilityStatus: true,
-      lastActivityAt: true,
-      availabilityUpdatedAt: true,
-    },
+    data: { availabilityStatus, lastActivityAt: now, availabilityUpdatedAt: now },
+    select: { id: true, availabilityStatus: true, lastActivityAt: true, availabilityUpdatedAt: true },
   });
 }
 
 export async function markStaleLawyersOffline(cutoff: Date) {
   const now = new Date();
-
   const result = await prisma.lawyerProfile.updateMany({
     where: {
       availabilityStatus: "AVAILABLE",
       OR: [
         { lastActivityAt: { lt: cutoff } },
-        {
-          lastActivityAt: null,
-          availabilityUpdatedAt: { lt: cutoff },
-        },
+        { lastActivityAt: null, availabilityUpdatedAt: { lt: cutoff } },
       ],
     },
-    data: {
-      availabilityStatus: "OFFLINE",
-      availabilityUpdatedAt: now,
-    },
+    data: { availabilityStatus: "OFFLINE", availabilityUpdatedAt: now },
   });
-
   return result.count;
 }
