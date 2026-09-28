@@ -3,6 +3,8 @@ import { assignRequestSchema, requestService } from "@/modules/requests";
 import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { errorResponse, jsonResponse } from "@/lib/http";
 import { auditService } from "@/modules/audit";
+import { prisma } from "@/lib/prisma";
+import { notifyUser } from "@/lib/notifications";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -32,6 +34,14 @@ export async function POST(request: NextRequest, { params }: Params) {
       id,
       parsed.data.lawyerProfileId,
     );
+    const requestRecord = await prisma.request.findUnique({ where: { id }, select: { citizenId: true, lawyerId: true, title: true } });
+    if (requestRecord) {
+      const href = `/requests/${id}/chat`;
+      await Promise.all([
+        notifyUser({ recipientId: requestRecord.citizenId, actorId: guard.id, requestId: id, type: "REQUEST_ASSIGNED", title: "A lawyer has been assigned", body: `Your enquiry “${requestRecord.title}” is ready.`, href }),
+        ...(requestRecord.lawyerId ? [notifyUser({ recipientId: requestRecord.lawyerId, actorId: guard.id, requestId: id, type: "REQUEST_ASSIGNED", title: "New client enquiry", body: `You have been assigned “${requestRecord.title}”.`, href })] : []),
+      ]);
+    }
     await auditService.logAuditEvent({ actorId: guard.id, action: "request.lawyer_assigned", target: `request:${id}`, metadata: { lawyerProfileId: parsed.data.lawyerProfileId, lawyerId: updated.lawyerId } });
     return jsonResponse(updated);
   } catch (error: unknown) {

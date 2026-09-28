@@ -37,6 +37,7 @@ interface LawyerProfileRecord {
   yearsOfExperience: number;
   verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
   isMatchable: boolean;
+  availabilityStatus: "AVAILABLE" | "BUSY" | "OFFLINE";
   rejectionReason: string | null;
   reviewedById: string | null;
   reviewedAt: Date | null;
@@ -66,6 +67,7 @@ function toLawyerProfileDto(profile: LawyerProfileRecord): LawyerProfileDto {
     yearsOfExperience: profile.yearsOfExperience,
     verificationStatus: profile.verificationStatus,
     isMatchable: profile.isMatchable,
+    availabilityStatus: profile.availabilityStatus,
     rejectionReason: profile.rejectionReason,
     reviewedById: profile.reviewedById,
     reviewedAt: profile.reviewedAt,

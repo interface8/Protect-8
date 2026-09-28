@@ -11,6 +11,7 @@ export interface LawyerProfileDto {
   yearsOfExperience: number;
   verificationStatus: LawyerVerificationStatus;
   isMatchable: boolean;
+  availabilityStatus: "AVAILABLE" | "BUSY" | "OFFLINE";
   rejectionReason: string | null;
   reviewedById: string | null;
   reviewedAt: Date | null;

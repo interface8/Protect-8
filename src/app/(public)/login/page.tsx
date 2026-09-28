@@ -77,7 +77,11 @@ function LoginPageContent() {
       }
 
       const returnTo = searchParams.get("returnTo");
-      const defaultDestination = data.user?.role === "admin" ? "/admin" : "/dashboard";
+      const defaultDestination = data.user?.role === "admin"
+        ? "/admin"
+        : data.user?.role === "lawyer"
+          ? "/lawyer"
+          : "/dashboard";
       router.push(returnTo && returnTo.startsWith("/") ? returnTo : defaultDestination);
       router.refresh();
       

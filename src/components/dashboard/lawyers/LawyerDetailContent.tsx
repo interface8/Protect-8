@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { fetchWithSession } from "@/lib/auth/fetchWithSession";
 import {
   ChevronLeft,
   CircleCheckBig,
@@ -12,6 +14,8 @@ import {
   Phone,
   Video,
   MessageCircle,
+  X,
+  Loader2,
 } from "lucide-react";
 import { LawyerDetail } from "@/types/lawyers";
 import { formatNGN } from "@/lib/format";
@@ -27,8 +31,35 @@ interface LawyerDetailContentProps {
 export default function LawyerDetailContent({ lawyer, enquiryCategory }: LawyerDetailContentProps) {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [authModal, setAuthModal] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const router = useRouter();
 
   const availability = getAvailability(lawyer.availabilityStatus);
+
+  async function startChat() {
+    setChatLoading(true);
+    setChatError("");
+    try {
+      const response = await fetchWithSession(`/api/lawyers/${encodeURIComponent(lawyer.id)}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: enquiryCategory }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        setAuthModal(true);
+        return;
+      }
+      if (!response.ok) throw new Error(body.message ?? "Could not start a chat");
+      router.push(`/requests/${encodeURIComponent(body.requestId)}/chat`);
+    } catch (cause) {
+      setChatError(cause instanceof Error ? cause.message : "Could not start a chat");
+    } finally { setChatLoading(false); }
+  }
+
+  const profileReturnTo = `/find-a-lawyer/${encodeURIComponent(lawyer.id)}${enquiryCategory ? `?${new URLSearchParams({ category: enquiryCategory })}` : ""}`;
 
   const stats = [
     {
@@ -157,12 +188,15 @@ export default function LawyerDetailContent({ lawyer, enquiryCategory }: LawyerD
           </button>
           <button
             type="button"
-            className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-[#1a1a1a] py-4 text-xs font-medium text-white transition-colors hover:bg-[#2a2a2a]"
+            onClick={() => void startChat()}
+            disabled={chatLoading}
+            className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-[#1a1a1a] py-4 text-xs font-medium text-white transition-colors hover:bg-[#2a2a2a] disabled:opacity-60"
           >
-            <MessageCircle className="h-5 w-5" />
-            Chat
+            {chatLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <MessageCircle className="h-5 w-5" />}
+            {chatLoading ? "Opening" : "Chat"}
           </button>
         </div>
+        {chatError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{chatError}</p>}
 
         <button
           type="button"
@@ -201,6 +235,7 @@ export default function LawyerDetailContent({ lawyer, enquiryCategory }: LawyerD
           requestId="test-request-id"
         />
       )}
+      {authModal && <div role="dialog" aria-modal="true" aria-labelledby="chat-auth-title" className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4"><div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"><button type="button" aria-label="Close" onClick={() => setAuthModal(false)} className="absolute right-4 top-4 text-gray-400 hover:text-gray-700"><X className="h-5 w-5" /></button><h2 id="chat-auth-title" className="text-xl font-semibold">Sign in to chat</h2><p className="mt-2 text-sm text-gray-500">Create an account or sign in to start a secure conversation with {lawyer.name}.</p><div className="mt-6 grid grid-cols-2 gap-3"><Link href={`/login?returnTo=${encodeURIComponent(profileReturnTo)}`} className="flex h-11 items-center justify-center rounded-xl bg-[#111] text-sm font-medium text-white">Sign in</Link><Link href={`/register?returnTo=${encodeURIComponent(profileReturnTo)}`} className="flex h-11 items-center justify-center rounded-xl border border-black/10 text-sm font-medium">Sign up</Link></div></div></div>}
     </div>
   );
 }
