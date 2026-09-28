@@ -152,7 +152,10 @@ import {
   Users,
   MessageSquare,
   Library,
+  BriefcaseBusiness,
+  ClipboardList,
 } from "lucide-react";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const iconMap = {
   Home,
@@ -160,6 +163,8 @@ const iconMap = {
   Users,
   MessageSquare,
   Library,
+  BriefcaseBusiness,
+  ClipboardList,
 };
 
 const navItems = [
@@ -170,8 +175,21 @@ const navItems = [
   { name: "Knowledge Center", href: "/knowledge-center", icon: "Library" },
 ];
 
+const lawyerItems = [
+  { name: "Lawyer Workspace", href: "/lawyer", icon: "BriefcaseBusiness" },
+];
+const citizenItems = [
+  { name: "My Enquiries", href: "/my-requests", icon: "ClipboardList" },
+];
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user } = useCurrentUser();
+  const items = user?.role === "lawyer"
+    ? [...navItems, ...lawyerItems]
+    : user?.role === "citizen"
+      ? [...navItems, ...citizenItems]
+      : navItems;
 
   return (
     <aside className="hidden md:flex md:flex-col w-[240px] bg-[#0a0a0a] h-screen fixed top-0 left-0 z-40">
@@ -188,7 +206,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
           const Icon = iconMap[item.icon as keyof typeof iconMap];
           return (

@@ -65,7 +65,6 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/dashboard/Sidebar";
 import TopBar from "@/components/dashboard/TopBar";
 import BottomNav from "@/components/dashboard/BottomNav";
-import RatingTrigger from "@/components/dashboard/lawyers/RatingTrigger";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -82,9 +81,8 @@ const pageTitles: Record<string, string> = {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
 
-  // Admin has its own control-room shell. Do not mount citizen navigation,
-  // account header, or the completed-case rating prompt in the admin area.
-  if (pathname?.startsWith("/admin")) {
+  // These routes render their own role-specific navigation shells.
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/lawyer") || pathname?.startsWith("/requests/")) {
     return <div className="min-h-screen bg-[#f5f3f0]"><main>{children}</main></div>;
   }
 
@@ -92,9 +90,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // If the path is a detail page like /know-your-rights/traffic-stop, show "Know Your Rights"
   let pageTitle = "Home";
   if (pathname) {
-    if (pathname.startsWith("/admin")) {
-      pageTitle = "Admin Console";
-    } else if (pathname.startsWith("/know-your-rights")) {
+    if (pathname.startsWith("/know-your-rights")) {
       pageTitle = "Know Your Rights";
     } else if (pathname.startsWith("/find-a-lawyer")) {
       pageTitle = "Find a Lawyer";
@@ -121,8 +117,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Bottom Navigation - mobile only */}
       <BottomNav />
 
-      {/* Rating Trigger - checks for COMPLETED requests to rate */}
-      <RatingTrigger />
     </div>
   );
 }

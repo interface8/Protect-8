@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { requestService } from "@/modules/requests";
 import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { errorResponse, jsonResponse } from "@/lib/http";
+import { notifyUser } from "@/lib/notifications";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -21,6 +22,7 @@ export async function POST(_request: NextRequest, { params }: Params) {
     }
 
     const updated = await requestService.startRequest(id);
+    await notifyUser({ recipientId: current.citizenId, actorId: guard.id, requestId: id, type: "REQUEST_STARTED", title: "Your lawyer started work", body: `Work has started on “${current.title}”.`, href: `/requests/${id}/chat` });
     return jsonResponse(updated);
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "Request not found") {

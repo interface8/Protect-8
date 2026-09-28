@@ -3,6 +3,7 @@ import { requestService, updateRequestSchema } from "@/modules/requests";
 import { requireApiRole, isErrorResponse } from "@/lib/auth";
 import { errorResponse, jsonResponse } from "@/lib/http";
 import { auditService } from "@/modules/audit";
+import { notifyUser } from "@/lib/notifications";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -79,6 +80,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
             description: parsed.data.description,
           },
     );
+    if (parsed.data.status && parsed.data.status !== existing.status) {
+      const recipients = [existing.citizenId, existing.lawyerId].filter((recipientId): recipientId is string => Boolean(recipientId) && recipientId !== guard.id);
+      await Promise.all(recipients.map((recipientId) => notifyUser({ recipientId, actorId: guard.id, requestId: id, type: "REQUEST_UPDATED", title: "Enquiry status updated", body: `“${existing.title}” is now ${parsed.data.status!.toLowerCase().replaceAll("_", " ")}.`, href: recipientId === existing.citizenId ? "/my-requests" : "/lawyer/enquiries" })));
+    }
     if (guard.role === "admin") {
       await auditService.logAuditEvent({ actorId: guard.id, action: "request.updated", target: `request:${id}`, metadata: { updatedFields: Object.keys(parsed.data) } });
     }

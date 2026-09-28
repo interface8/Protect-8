@@ -198,11 +198,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Bell, User, CircleAlert } from "lucide-react";
+import { ArrowRight, User, CircleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useEmergencyCategories } from "@/hooks/useEmergencyCategories";
 import { getCategoryEmoji } from "@/lib/emergency-category-icon";
+import NotificationMenu from "@/components/dashboard/home/NotificationMenu";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -243,14 +244,7 @@ export default function HomeHeadSection() {
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button
-              type="button"
-              aria-label="Notifications"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/10 md:h-10 md:w-10"
-            >
-              <Bell className="h-4 w-4 text-white/70 md:h-[18px] md:w-[18px]" />
-              <span className="absolute right-2.5 top-2 h-1.5 w-1.5 rounded-full bg-[#c4922a]" />
-            </button>
+            <NotificationMenu />
             <button
               type="button"
               aria-label="Profile"
