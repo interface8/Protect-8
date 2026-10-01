@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Mail, Lock, User, ArrowRight, Check, X, Eye, EyeOff } from "lucide-react";
+import { Shield, Mail, Lock, User, ArrowRight, Check, X, Eye, EyeOff, BriefcaseBusiness, Scale } from "lucide-react";
 
 export default function RegisterPage() {
   return <Suspense fallback={<div className="min-h-screen bg-[#f5f3f0]" />}><RegisterPageContent /></Suspense>;
@@ -34,17 +34,13 @@ function RegisterPageContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  // Prevent XSS attacks
-  function sanitizeInput(value: string): string {
-    return value
-      .trim()
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")
-      .replace(/&/g, "&amp;");
-  }
+  const [accountType, setAccountType] = useState<"citizen" | "lawyer">("citizen");
+  const [barEnrollmentNumber, setBarEnrollmentNumber] = useState("");
+  const [practiceLicenseUrl, setPracticeLicenseUrl] = useState("");
+  const [idDocumentUrl, setIdDocumentUrl] = useState("");
+  const [practiceAreas, setPracticeAreas] = useState("");
+  const [languages, setLanguages] = useState("English");
+  const [yearsOfExperience, setYearsOfExperience] = useState("0");
 
   // Validate email format
   function isValidEmail(value: string): boolean {
@@ -69,8 +65,8 @@ function RegisterPageContent() {
     e.preventDefault();
 
     const sanitizedName = sanitizeName(name);
-    const sanitizedEmail = sanitizeInput(email);
-    const sanitizedPassword = sanitizeInput(password);
+    const sanitizedEmail = email.trim().toLowerCase();
+    const submittedPassword = password;
 
     if (!sanitizedName || sanitizedName.length < 2) {
       setError("Please enter your full name");
@@ -97,8 +93,18 @@ function RegisterPageContent() {
         body: JSON.stringify({
           name: sanitizedName,
           email: sanitizedEmail,
-          password: sanitizedPassword,
-          role: "citizen",
+          password: submittedPassword,
+          role: accountType,
+          ...(accountType === "lawyer" ? {
+            lawyerProfile: {
+              barEnrollmentNumber: barEnrollmentNumber.trim(),
+              practiceLicenseUrl: practiceLicenseUrl.trim(),
+              idDocumentUrl: idDocumentUrl.trim(),
+              practiceAreas: practiceAreas.split(",").map((value) => value.trim()).filter(Boolean),
+              languages: languages.split(",").map((value) => value.trim()).filter(Boolean),
+              yearsOfExperience: Number(yearsOfExperience),
+            },
+          } : {}),
         }),
       });
 
@@ -110,7 +116,8 @@ function RegisterPageContent() {
       }
 
       const returnTo = searchParams.get("returnTo");
-      router.push(returnTo && returnTo.startsWith("/") ? returnTo : "/dashboard");
+      const safeReturnTo = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : null;
+      router.replace(accountType === "lawyer" ? "/lawyer" : safeReturnTo ?? "/dashboard");
       router.refresh();
     } catch {
       setError("Something went wrong");
@@ -156,10 +163,10 @@ function RegisterPageContent() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-[#554116]">
-            Create Account
+            {accountType === "lawyer" ? "Lawyer registration" : "Create your account"}
           </CardTitle>
           <CardDescription className="text-sm text-[#0a0a0a]/60">
-            Join Protect8 and stay protected
+            {accountType === "lawyer" ? "Create a professional account and submit your credentials for review." : "Get trusted legal support and stay protected."}
           </CardDescription>
         </CardHeader>
 
@@ -172,6 +179,12 @@ function RegisterPageContent() {
               </AlertDescription>
             </Alert>
           )}
+
+          <div className="mb-4 grid grid-cols-2 gap-2 rounded-xl bg-[#f5f3f0] p-1.5" aria-label="Choose account type">
+            <button type="button" aria-pressed={accountType === "citizen"} onClick={() => setAccountType("citizen")} className={`flex min-h-[68px] items-center gap-2 rounded-lg px-3 py-2 text-left transition ${accountType === "citizen" ? "bg-white text-[#554116] shadow-sm" : "text-gray-500 hover:text-gray-800"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${accountType === "citizen" ? "bg-[#f4efe3]" : "bg-white/70"}`}><User className="h-4 w-4" /></span><span><span className="block text-xs font-semibold">I need legal help</span><span className="mt-0.5 block text-[10px] text-gray-500">Create a client account</span></span></button>
+            <button type="button" aria-pressed={accountType === "lawyer"} onClick={() => setAccountType("lawyer")} className={`flex min-h-[68px] items-center gap-2 rounded-lg px-3 py-2 text-left transition ${accountType === "lawyer" ? "bg-white text-[#554116] shadow-sm" : "text-gray-500 hover:text-gray-800"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${accountType === "lawyer" ? "bg-[#f4efe3]" : "bg-white/70"}`}><Scale className="h-4 w-4" /></span><span><span className="block text-xs font-semibold">I’m a lawyer</span><span className="mt-0.5 block text-[10px] text-gray-500">Apply to join Protect8</span></span></button>
+          </div>
+          {accountType === "lawyer" && <div className="mb-4 rounded-xl border border-[#e8d6a9] bg-[#fbf7eb] px-3 py-2.5 text-xs leading-5 text-[#6f592d]"><BriefcaseBusiness className="mr-1.5 inline h-3.5 w-3.5" />Complete the professional application below as part of registration. It will be sent to an administrator, and your profile stays hidden from clients until approval.</div>}
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Full Name field */}
@@ -206,13 +219,22 @@ function RegisterPageContent() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onBlur={() => setEmail(sanitizeInput(email))}
+                  onBlur={() => setEmail(email.trim().toLowerCase())}
                   required
                   placeholder="you@example.com"
                   className="pl-8 border-[#554116]/20 focus-visible:ring-[#c4922a] focus-visible:border-[#c4922a] h-9 rounded-lg bg-[#efe2c7]/20 text-xs"
                 />
               </div>
             </div>
+
+            {accountType === "lawyer" && <div className="space-y-3 rounded-xl border border-[#554116]/10 bg-[#efe2c7]/15 p-3">
+              <div><h2 className="text-sm font-semibold text-[#554116]">Professional application</h2><p className="mt-1 text-[11px] leading-4 text-gray-500">These details and document links are sent to the admin review queue with your account.</p></div>
+              <div className="space-y-1"><Label htmlFor="bar-number" className="text-xs font-medium text-[#554116]">Bar enrollment number</Label><Input id="bar-number" value={barEnrollmentNumber} onChange={(event) => setBarEnrollmentNumber(event.target.value)} minLength={3} required={accountType === "lawyer"} placeholder="Your bar enrollment number" className="h-9 bg-white text-xs" /></div>
+              <div className="grid grid-cols-2 gap-2"><div className="space-y-1"><Label htmlFor="experience" className="text-xs font-medium text-[#554116]">Years of practice</Label><Input id="experience" type="number" min="0" max="80" step="1" value={yearsOfExperience} onChange={(event) => setYearsOfExperience(event.target.value)} required={accountType === "lawyer"} className="h-9 bg-white text-xs" /></div><div className="space-y-1"><Label htmlFor="languages" className="text-xs font-medium text-[#554116]">Languages</Label><Input id="languages" value={languages} onChange={(event) => setLanguages(event.target.value)} required={accountType === "lawyer" && languages.trim().length > 0} placeholder="English, Yoruba" className="h-9 bg-white text-xs" /></div></div>
+              <div className="space-y-1"><Label htmlFor="practice-areas" className="text-xs font-medium text-[#554116]">Practice areas</Label><Input id="practice-areas" value={practiceAreas} onChange={(event) => setPracticeAreas(event.target.value)} required={accountType === "lawyer"} placeholder="Criminal law, family law" className="h-9 bg-white text-xs" /><p className="text-[10px] text-gray-400">Separate each area with a comma.</p></div>
+              <div className="space-y-1"><Label htmlFor="practice-license" className="text-xs font-medium text-[#554116]">Practice license document link</Label><Input id="practice-license" type="url" value={practiceLicenseUrl} onChange={(event) => setPracticeLicenseUrl(event.target.value)} required={accountType === "lawyer"} placeholder="https://…" className="h-9 bg-white text-xs" /><p className="text-[10px] leading-4 text-gray-400">Provide a secure link the Protect8 admin reviewer can open (PDF link accepted).</p></div>
+              <div className="space-y-1"><Label htmlFor="identity-document" className="text-xs font-medium text-[#554116]">Government identity document link</Label><Input id="identity-document" type="url" value={idDocumentUrl} onChange={(event) => setIdDocumentUrl(event.target.value)} required={accountType === "lawyer"} placeholder="https://…" className="h-9 bg-white text-xs" /><p className="text-[10px] leading-4 text-gray-400">Use a private, reviewer-accessible link. Only submit documents required for verification.</p></div>
+            </div>}
 
             {/* Password field with toggle */}
             <div className="space-y-1">
@@ -226,7 +248,6 @@ function RegisterPageContent() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => setPassword(sanitizeInput(password))}
                   required
                   placeholder="••••••••"
                   className={`pl-8 pr-8 border-[#554116]/20 focus-visible:ring-[#c4922a] focus-visible:border-[#c4922a] h-9 rounded-lg bg-[#efe2c7]/20 text-xs ${
@@ -268,7 +289,7 @@ function RegisterPageContent() {
                 "Creating account..."
               ) : (
                 <span className="flex items-center justify-center gap-1.5">
-                  Create Account <ArrowRight className="w-3.5 h-3.5" />
+                  {accountType === "lawyer" ? "Create account & continue" : "Create Account"} <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               )}
             </Button>

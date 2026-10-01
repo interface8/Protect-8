@@ -4,10 +4,10 @@ import {
   MFA_CHANNELS,
   MFA_PURPOSES,
   PASSWORD_MIN_LENGTH,
-  SUPPORTED_ROLES,
 } from "@/lib/auth/constants";
+import { submitLawyerOnboardingSchema } from "@/modules/lawyers/validation";
 
-const roleSchema = z.enum(SUPPORTED_ROLES);
+const roleSchema = z.enum(["citizen", "lawyer"]);
 const providerSchema = z.enum(AUTH_PROVIDERS);
 const purposeSchema = z.enum(MFA_PURPOSES);
 const channelSchema = z.enum(MFA_CHANNELS);
@@ -31,6 +31,7 @@ export const registerSchema = z
     oauthToken: oauthTokenSchema.optional(),
     provider: providerSchema.optional(),
     role: roleSchema,
+    lawyerProfile: submitLawyerOnboardingSchema.optional(),
   })
   .refine((data) => data.email || data.phone, {
     message: "Provide either email or phone",
@@ -51,6 +52,10 @@ export const registerSchema = z
   .refine((data) => (data.oauthToken ? !!data.provider : true), {
     message: "Provider is required for OAuth sign-in",
     path: ["provider"],
+  })
+  .refine((data) => data.role === "lawyer" ? !!data.lawyerProfile : !data.lawyerProfile, {
+    message: "Lawyer registrations must include a complete professional application",
+    path: ["lawyerProfile"],
   });
 
 export const loginSchema = z

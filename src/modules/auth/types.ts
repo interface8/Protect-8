@@ -4,6 +4,7 @@ import type {
   MfaPurpose,
   SupportedRole,
 } from "@/lib/auth/constants";
+import type { SubmitLawyerOnboardingInput } from "@/modules/lawyers/types";
 
 export interface AuthUserDto {
   id: string;
@@ -26,7 +27,8 @@ export interface RegisterInput {
   password?: string;
   oauthToken?: string;
   provider?: AuthProvider;
-  role: SupportedRole;
+  role: Exclude<SupportedRole, "admin">;
+  lawyerProfile?: SubmitLawyerOnboardingInput;
 }
 
 export interface LoginInput {
