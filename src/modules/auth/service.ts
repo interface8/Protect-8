@@ -154,6 +154,7 @@ export async function register(input: RegisterInput): Promise<AuthSessionDto> {
     roleId: role.id,
     authProvider,
     providerId,
+    lawyerProfile: input.lawyerProfile,
   });
 
   return createSession(user);

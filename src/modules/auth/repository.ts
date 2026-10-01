@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { hashMfaCode, hashToken } from "@/lib/auth/session";
 import type { AuthProvider, MfaChannel, MfaPurpose } from "@/lib/auth/constants";
+import type { SubmitLawyerOnboardingInput } from "@/modules/lawyers/types";
 
 export async function findRoleByName(name: string) {
   return prisma.role.findUnique({
@@ -62,9 +63,23 @@ export async function createUser(data: {
   roleId: string;
   authProvider?: string | null;
   providerId?: string | null;
+  lawyerProfile?: SubmitLawyerOnboardingInput;
 }) {
+  const { lawyerProfile, ...userData } = data;
   return prisma.user.create({
-    data,
+    data: {
+      ...userData,
+      ...(lawyerProfile ? {
+        lawyerProfile: {
+          create: {
+            ...lawyerProfile,
+            verificationStatus: "PENDING",
+            isMatchable: false,
+            availabilityStatus: "OFFLINE",
+          },
+        },
+      } : {}),
+    },
     include: { role: true },
   });
 }

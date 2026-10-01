@@ -249,6 +249,7 @@ function LoginPageContent() {
               Create Account
             </Link>
           </p>
+          <p className="mt-2 text-center text-[11px] text-[#0a0a0a]/45">Lawyers and clients use the same sign-in. New lawyers can select “I’m a lawyer” when creating an account.</p>
         </CardFooter>
       </Card>
     </div>
